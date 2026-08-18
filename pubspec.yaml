@@ -1,0 +1,48 @@
+name: cadence
+description: Cadence — PCOS care companion, cycle-aware symptom tracking.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  google_fonts: ^6.2.1
+  fl_chart: ^0.68.0
+  cupertino_icons: ^1.0.6
+  shared_preferences: ^2.2.3
+  intl: ^0.19.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  pdf: ^3.11.1
+  path_provider: ^2.1.4
+  share_plus: ^10.0.2
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  cloud_firestore: ^5.4.4
+  local_auth: ^2.3.0
+  connectivity_plus: ^6.1.0
+  url_launcher: ^6.3.1
+  image_picker: ^1.1.2
+  firebase_storage: ^12.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/cadence.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/cadence.png"
+  adaptive_icon_background: "#F7EFE7"
+  adaptive_icon_foreground: "assets/images/cadence.png"

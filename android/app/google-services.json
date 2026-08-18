@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "492077834729",
+    "project_id": "cadence-91b81",
+    "storage_bucket": "cadence-91b81.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:492077834729:android:bdec7eb5d90308b81b2b78",
+        "android_client_info": {
+          "package_name": "com.cadence.pcos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "492077834729-ekd9gdshjv5avo90ug11dipli1oi1im2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARciQ_67eEgNIxevTScTl-GnT_Oh6AZ5E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "492077834729-ekd9gdshjv5avo90ug11dipli1oi1im2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
