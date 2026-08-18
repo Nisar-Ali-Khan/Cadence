@@ -89,9 +89,9 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     if (_checking) {
-      return const Scaffold(
-        backgroundColor: AppColors.sand,
-        body: Center(child: CircularProgressIndicator(color: AppColors.plum)),
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(child: CircularProgressIndicator(color: AppColors.plum)),
       );
     }
 
@@ -114,16 +114,16 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
                 child: const Icon(Icons.fingerprint, size: 34, color: AppColors.amber),
               ),
               const SizedBox(height: 24),
-              Text('Cadence is locked', style: AppText.display(size: 20, color: AppColors.white)),
+              Text('Cadence is locked', style: AppText.display(context: context, size: 20, color: AppColors.white)),
               const SizedBox(height: 8),
               Text(
                 'Unlock with your fingerprint or face to continue.',
                 textAlign: TextAlign.center,
-                style: AppText.body(size: 13, color: AppColors.sageLight),
+                style: AppText.body(context: context, size: 13, color: AppColors.sageLight),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 10),
-                Text(_error!, style: AppText.body(size: 12, color: AppColors.rose)),
+                Text(_error!, style: AppText.body(context: context, size: 12, color: AppColors.rose)),
               ],
               const SizedBox(height: 28),
               SizedBox(
@@ -136,7 +136,7 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
                     elevation: 0,
                   ),
-                  child: Text('Try again', style: AppText.body(size: 14, weight: FontWeight.w700, color: AppColors.plumDeep)),
+                  child: Text('Try again', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.plumDeep)),
                 ),
               ),
             ],

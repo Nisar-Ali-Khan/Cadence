@@ -60,9 +60,10 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
-      appBar: AppBar(backgroundColor: AppColors.sand, elevation: 0, iconTheme: const IconThemeData(color: AppColors.ink)),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.ink)),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -72,9 +73,9 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Create your account', style: AppText.display(size: 26)),
+                  Text('Create your account', style: AppText.display(context: context, size: 26)),
                   const SizedBox(height: 6),
-                  Text('Start tracking your patterns, privately', style: AppText.body(size: 13, color: AppColors.muted)),
+                  Text('Start tracking your patterns, privately', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
                   const SizedBox(height: 28),
                   AuthTextField(
                     label: 'Full name',
@@ -126,19 +127,19 @@ class _SignupScreenState extends State<SignupScreen> {
                           padding: const EdgeInsets.only(top: 2),
                           child: RichText(
                             text: TextSpan(
-                              style: AppText.body(size: 12.5, color: AppColors.muted),
+                              style: AppText.body(context: context, size: 12.5, color: AppColors.muted),
                               children: [
                                 const TextSpan(text: 'I agree to the '),
                                 TextSpan(
                                   text: 'Terms of Service',
-                                  style: AppText.body(size: 12.5, weight: FontWeight.w700, color: AppColors.plum),
+                                  style: AppText.body(context: context, size: 12.5, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TermsScreen())),
                                 ),
                                 const TextSpan(text: ' and '),
                                 TextSpan(
                                   text: 'Privacy Policy',
-                                  style: AppText.body(size: 12.5, weight: FontWeight.w700, color: AppColors.plum),
+                                  style: AppText.body(context: context, size: 12.5, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
                                 ),
@@ -152,7 +153,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 10),
-                    Text(_error!, style: AppText.body(size: 12.5, color: AppColors.rose)),
+                    Text(_error!, style: AppText.body(context: context, size: 12.5, color: AppColors.rose)),
                   ],
                   const SizedBox(height: 20),
                   SizedBox(
@@ -162,7 +163,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.plum, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)), elevation: 0),
                       child: _loading
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-                          : Text('Create account', style: AppText.body(size: 15, weight: FontWeight.w600, color: AppColors.white)),
+                          : Text('Create account', style: AppText.body(context: context, size: 15, weight: FontWeight.w600, color: AppColors.white)),
                     ),
                   ),
                   const SizedBox(height: 24),

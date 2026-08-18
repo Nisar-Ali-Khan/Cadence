@@ -25,7 +25,6 @@ class StorageService {
   String get _keyWaterLog => '${uid}_water_log';
   String get _keyMedicationNames => '${uid}_medication_names';
   String get _keyThemeMode => '${uid}_theme_mode';
-  String get _keyProfilePicUrl => '${uid}_profile_pic_url';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -277,16 +276,6 @@ class StorageService {
     await prefs.setString(_keyThemeMode, mode);
   }
 
-  Future<String?> loadProfilePicUrl() async {
-    final prefs = await _prefs;
-    return prefs.getString(_keyProfilePicUrl);
-  }
-
-  Future<void> saveProfilePicUrl(String url) async {
-    final prefs = await _prefs;
-    await prefs.setString(_keyProfilePicUrl, url);
-  }
-
   Future<void> clearAllUserData() async {
     final prefs = await _prefs;
     await prefs.remove(_keyCycleStart);
@@ -309,7 +298,6 @@ class StorageService {
     await prefs.remove(_keyWaterLog);
     await prefs.remove(_keyMedicationNames);
     await prefs.remove(_keyThemeMode);
-    await prefs.remove(_keyProfilePicUrl);
   }
 
   Future<Map<String, dynamic>> exportAllData() async {
@@ -325,7 +313,6 @@ class StorageService {
     final waterLog = await loadWaterLog();
     final medNames = await loadMedicationNames();
     final theme = await loadThemeMode();
-    final profilePicUrl = await loadProfilePicUrl();
 
     return {
       'condition': condition,
@@ -339,7 +326,6 @@ class StorageService {
       'waterLog': waterLog.map((k, v) => MapEntry(k.toString(), v)),
       'medicationNames': medNames,
       'themeMode': theme,
-      'profilePicUrl': profilePicUrl,
       'reports': reports,
       'exportedAt': DateTime.now().toIso8601String(),
     };

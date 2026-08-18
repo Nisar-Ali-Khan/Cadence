@@ -119,21 +119,23 @@ class TodayScreen extends StatelessWidget {
     return notes;
   }
 
-  Widget _stepButton(IconData icon, VoidCallback onTap, {Color? color}) {
+  Widget _stepButton(BuildContext context, IconData icon, VoidCallback onTap, {Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(99),
       child: Container(
         width: 40,
         height: 40,
-        decoration: BoxDecoration(color: color ?? AppColors.sand, borderRadius: BorderRadius.circular(99)),
-        child: Icon(icon, size: 18, color: AppColors.plum),
+        decoration: BoxDecoration(color: color ?? (isDark ? Colors.white10 : AppColors.sand), borderRadius: BorderRadius.circular(99)),
+        child: Icon(icon, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final safeDay = currentDay.clamp(1, cycleData.length);
     final i1 = safeDay - 1;
     final i2 = (safeDay - 2).clamp(0, cycleData.length - 1);
@@ -174,9 +176,9 @@ class TodayScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_greeting(), style: AppText.display(size: 24), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(_greeting(), style: AppText.display(context: context, size: 24), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  Text(DateFormat('EEEE, MMMM d').format(DateTime.now()), style: AppText.body(size: 13, color: AppColors.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(DateFormat('EEEE, MMMM d').format(DateTime.now()), style: AppText.body(context: context, size: 13, color: AppColors.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
                   if (streak >= 2) ...[
                     const SizedBox(height: 6),
                     Container(
@@ -187,7 +189,7 @@ class TodayScreen extends StatelessWidget {
                         children: [
                           const Text('🔥', style: TextStyle(fontSize: 12)),
                           const SizedBox(width: 4),
-                          Flexible(child: Text('$streak day streak', style: AppText.body(size: 11, weight: FontWeight.w700, color: AppColors.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                          Flexible(child: Text('$streak day streak', style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? Colors.white : AppColors.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
                         ],
                       ),
                     ),
@@ -215,14 +217,14 @@ class TodayScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(99)),
-                    child: const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.plum),
+                    decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
+                    child: Icon(Icons.calendar_month_outlined, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(99)),
-                  child: const Icon(Icons.notifications_none, size: 18, color: AppColors.plum),
+                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
+                  child: Icon(Icons.notifications_none, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
                 ),
               ],
             ),
@@ -234,9 +236,9 @@ class TodayScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              _predictionItem('Next Period', DateFormat('MMM d').format(nextPeriodDate), Icons.calendar_today_outlined, AppColors.rose),
+              _predictionItem(context, 'Next Period', DateFormat('MMM d').format(nextPeriodDate), Icons.calendar_today_outlined, AppColors.rose),
               const SizedBox(width: 12),
-              _predictionItem('Ovulation', isOvulatingSoon ? 'Soon' : 'In ${ovulationDay - currentDay} days', Icons.favorite_outline, AppColors.sage),
+              _predictionItem(context, 'Ovulation', isOvulatingSoon ? 'Soon' : 'In ${ovulationDay - currentDay} days', Icons.favorite_outline, AppColors.sage),
             ],
           ),
         ),
@@ -257,10 +259,10 @@ class TodayScreen extends StatelessWidget {
                     children: [
                       Container(width: 8, height: 8, decoration: BoxDecoration(color: flareColor, shape: BoxShape.circle)),
                       const SizedBox(width: 8),
-                      Flexible(child: Text('$flareLabel: $flareRisk', style: AppText.body(size: 12, weight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Flexible(child: Text('$flareLabel: $flareRisk', style: AppText.body(context: context, size: 12, weight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
                       if (avgRecent >= 3.5) ...[
                         const SizedBox(width: 6),
-                        const Icon(Icons.info_outline, size: 12, color: AppColors.ink),
+                        Icon(Icons.info_outline, size: 12, color: isDark ? Colors.white70 : AppColors.ink),
                       ],
                     ],
                   ),
@@ -273,20 +275,22 @@ class TodayScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Log today', style: AppText.display(size: 17)),
+              Text('Log today', style: AppText.display(context: context, size: 17)),
               const SizedBox(height: 10),
               SymptomSlider(label: 'Pain', icon: Icons.bolt, accent: AppColors.rose, value: todayLog['pain']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('pain', v)),
               SymptomSlider(label: 'Fatigue', icon: Icons.bedtime_outlined, accent: AppColors.amber, value: todayLog['fatigue']!, lowLabel: 'Rested', highLabel: 'Exhausted', onChanged: (v) => onChangeLog('fatigue', v)),
               SymptomSlider(label: 'Mood', icon: Icons.sentiment_satisfied_alt, accent: AppColors.sage, value: todayLog['mood']!, lowLabel: 'Low', highLabel: 'Great', onChanged: (v) => onChangeLog('mood', v)),
               SymptomSlider(label: 'Bloating', icon: Icons.water_drop_outlined, accent: AppColors.plum, value: todayLog['bloating']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('bloating', v)),
+              SymptomSlider(label: 'Acne', icon: Icons.face_retouching_natural, accent: AppColors.rose, value: todayLog['acne'] ?? 1, lowLabel: 'Clear', highLabel: 'Severe', onChanged: (v) => onChangeLog('acne', v)),
+              SymptomSlider(label: 'Sleep', icon: Icons.bedtime_outlined, accent: AppColors.sage, value: todayLog['sleep'] ?? 7, lowLabel: 'Poor', highLabel: 'Great', onChanged: (v) => onChangeLog('sleep', v)),
               const SizedBox(height: 4),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: onSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: logged ? AppColors.sage : AppColors.plum,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: logged ? AppColors.sage : (isDark ? AppColors.sageLight : AppColors.plum),
+                    foregroundColor: isDark ? Colors.black : AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
                     elevation: 0,
@@ -296,7 +300,7 @@ class TodayScreen extends StatelessWidget {
                     children: [
                       if (logged) const Icon(Icons.check, size: 16),
                       if (logged) const SizedBox(width: 6),
-                      Text(logged ? 'Saved for today' : "Save today's log", style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+                      Text(logged ? 'Saved for today' : "Save today's log", style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: isDark ? Colors.black : AppColors.white)),
                     ],
                   ),
                 ),
@@ -308,7 +312,7 @@ class TodayScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Water tracker', style: AppText.display(size: 17)),
+              Text('Water tracker', style: AppText.display(context: context, size: 17)),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -316,15 +320,15 @@ class TodayScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('$waterGlasses glasses today', style: AppText.body(size: 15, weight: FontWeight.w700)),
+                        Text('$waterGlasses glasses today', style: AppText.body(context: context, size: 15, weight: FontWeight.w700)),
                         const SizedBox(height: 2),
-                        Text('Goal: 8 glasses (2L)', style: AppText.body(size: 12, color: AppColors.muted)),
+                        Text('Goal: 8 glasses (2L)', style: AppText.body(context: context, size: 12, color: AppColors.muted)),
                       ],
                     ),
                   ),
-                  _stepButton(Icons.remove, () => onUpdateWater((waterGlasses - 1).clamp(0, 30))),
+                  _stepButton(context, Icons.remove, () => onUpdateWater((waterGlasses - 1).clamp(0, 30))),
                   const SizedBox(width: 12),
-                  _stepButton(Icons.add, () => onUpdateWater((waterGlasses + 1).clamp(0, 30)), color: AppColors.plum.withOpacity(0.08)),
+                  _stepButton(context, Icons.add, () => onUpdateWater((waterGlasses + 1).clamp(0, 30)), color: isDark ? Colors.white10 : AppColors.plum.withOpacity(0.08)),
                 ],
               ),
               const SizedBox(height: 16),
@@ -336,7 +340,7 @@ class TodayScreen extends StatelessWidget {
                       height: 6,
                       margin: EdgeInsets.only(right: index == 7 ? 0 : 4),
                       decoration: BoxDecoration(
-                        color: index < waterGlasses ? AppColors.plum : AppColors.sand,
+                        color: index < waterGlasses ? (isDark ? AppColors.sage : AppColors.plum) : (isDark ? Colors.white10 : AppColors.sand),
                         borderRadius: BorderRadius.circular(99),
                       ),
                     ),
@@ -350,16 +354,16 @@ class TodayScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Medication', style: AppText.display(size: 17)),
+              Text('Medication', style: AppText.display(context: context, size: 17)),
               const SizedBox(height: 12),
               if (medicationNames.isEmpty)
-                Text('Add your medications in Profile to track them here.', style: AppText.body(size: 13, color: AppColors.muted))
+                Text('Add your medications in Profile to track them here.', style: AppText.body(context: context, size: 13, color: AppColors.muted))
               else
                 ...medicationNames.map((name) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      Expanded(child: Text(name, style: AppText.body(size: 14, weight: FontWeight.w600))),
+                      Expanded(child: Text(name, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
                       Checkbox(
                         value: medicationLog[name] ?? false,
                         onChanged: (v) => onToggleMedication(name, v ?? false),
@@ -376,7 +380,7 @@ class TodayScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Daily note', style: AppText.display(size: 17)),
+              Text('Daily note', style: AppText.display(context: context, size: 17)),
               const SizedBox(height: 12),
               _NoteField(initialValue: todayNote, onUpdate: onUpdateNote),
             ],
@@ -390,13 +394,13 @@ class TodayScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Weight', style: AppText.display(size: 17)),
+                    Text('Weight', style: AppText.display(context: context, size: 17)),
                     GestureDetector(
                       onTap: () => onChangeWeightUnit(weightUnit == 'kg' ? 'lbs' : 'kg'),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(99)),
-                        child: Text(weightUnit, style: AppText.body(size: 11, weight: FontWeight.w700, color: AppColors.plum)),
+                        decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(99)),
+                        child: Text(weightUnit, style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum)),
                       ),
                     ),
                   ],
@@ -405,16 +409,16 @@ class TodayScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _stepButton(Icons.remove, () => onChangeWeight(((todayWeightKg ?? 65.0) - _weightStepKg()).clamp(20, 300))),
+                    _stepButton(context, Icons.remove, () => onChangeWeight(((todayWeightKg ?? 65.0) - _weightStepKg()).clamp(20, 300))),
                     const SizedBox(width: 24),
                     Column(
                       children: [
-                        Text(todayWeightKg == null ? '—' : _displayWeight(todayWeightKg!), style: AppText.display(size: 32)),
-                        Text(weightUnit, style: AppText.body(size: 12, color: AppColors.muted)),
+                        Text(todayWeightKg == null ? '—' : _displayWeight(todayWeightKg!), style: AppText.display(context: context, size: 32)),
+                        Text(weightUnit, style: AppText.body(context: context, size: 12, color: AppColors.muted)),
                       ],
                     ),
                     const SizedBox(width: 24),
-                    _stepButton(Icons.add, () => onChangeWeight(((todayWeightKg ?? 65.0) + _weightStepKg()).clamp(20, 300))),
+                    _stepButton(context, Icons.add, () => onChangeWeight(((todayWeightKg ?? 65.0) + _weightStepKg()).clamp(20, 300))),
                   ],
                 ),
               ],
@@ -433,7 +437,7 @@ class TodayScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'This pain level is higher than your recent average. It may be worth checking in with your doctor sooner rather than at your next scheduled visit.',
-                    style: AppText.body(size: 13),
+                    style: AppText.body(context: context, size: 13),
                   ),
                 ),
               ],
@@ -445,28 +449,28 @@ class TodayScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.trending_up, size: 16, color: AppColors.plum),
+                  Icon(Icons.trending_up, size: 16, color: isDark ? AppColors.sageLight : AppColors.plum),
                   const SizedBox(width: 8),
-                  Text('Patterns in your logs', style: AppText.display(size: 17)),
+                  Text('Patterns in your logs', style: AppText.display(context: context, size: 17)),
                 ],
               ),
               const SizedBox(height: 12),
               if (insights.isEmpty)
-                Text('Log at least 2 days from here and patterns will start showing up in this card.', style: AppText.body(size: 13.5, color: AppColors.muted))
+                Text('Log at least 2 days from here and patterns will start showing up in this card.', style: AppText.body(context: context, size: 13.5, color: AppColors.muted))
               else
                 ...List.generate(insights.length, (i) {
                   final isLast = i == insights.length - 1;
                   return Container(
                     padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
                     margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                    decoration: isLast ? null : const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.sandDeep))),
-                    child: Text(insights[i], style: AppText.body(size: 13.5)),
+                    decoration: isLast ? null : BoxDecoration(border: Border(bottom: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
+                    child: Text(insights[i], style: AppText.body(context: context, size: 13.5)),
                   );
                 }),
               const SizedBox(height: 14),
               Container(
                 padding: const EdgeInsets.only(top: 10),
-                decoration: const BoxDecoration(border: Border(top: BorderSide(color: AppColors.sandDeep))),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -475,7 +479,7 @@ class TodayScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'These are patterns from your own logs, not a diagnosis. Share them with your doctor for context.',
-                        style: AppText.body(size: 11.5, color: AppColors.muted),
+                        style: AppText.body(context: context, size: 11.5, color: AppColors.muted),
                       ),
                     ),
                   ],
@@ -488,7 +492,7 @@ class TodayScreen extends StatelessWidget {
     );
   }
 
-  Widget _predictionItem(String label, String value, IconData icon, Color color) {
+  Widget _predictionItem(BuildContext context, String label, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -501,8 +505,8 @@ class TodayScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: AppText.body(size: 11, color: AppColors.muted)),
-                  Text(value, style: AppText.body(size: 13, weight: FontWeight.w700)),
+                  Text(label, style: AppText.body(context: context, size: 11, color: AppColors.muted)),
+                  Text(value, style: AppText.body(context: context, size: 13, weight: FontWeight.w700)),
                 ],
               ),
             ),
@@ -527,9 +531,9 @@ class TodayScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Rescue Toolkit', style: AppText.display(size: 20)),
+            Text('Rescue Toolkit', style: AppText.display(context: context, size: 20)),
             const SizedBox(height: 4),
-            Text('Actionable tips for your $title', style: AppText.body(size: 13, color: AppColors.muted)),
+            Text('Actionable tips for your $title', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
             const SizedBox(height: 20),
             ...tips.map((tip) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -537,14 +541,14 @@ class TodayScreen extends StatelessWidget {
                 children: [
                   const Icon(Icons.check_circle_outline, size: 18, color: AppColors.sage),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(tip, style: AppText.body(size: 14))),
+                  Expanded(child: Text(tip, style: AppText.body(context: context, size: 14))),
                 ],
               ),
             )),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Got it', style: AppText.body(size: 14, weight: FontWeight.w700, color: AppColors.plum))),
+              child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Got it', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.plum))),
             ),
           ],
         ),
@@ -588,13 +592,14 @@ class _NoteFieldState extends State<_NoteField> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
       child: TextField(
         controller: _controller,
         maxLines: 3,
-        style: AppText.body(size: 13.5),
+        style: AppText.body(context: context, size: 13.5),
         decoration: const InputDecoration(
           hintText: 'How are you really feeling? Any specific triggers?',
           border: InputBorder.none,

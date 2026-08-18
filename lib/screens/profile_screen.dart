@@ -21,9 +21,7 @@ class ProfileScreen extends StatefulWidget {
   final Map<String, bool> reminders;
   final int cycleLength;
   final DateTime cycleStartDate;
-  final String themeMode;
   final List<String> medicationNames;
-  final String? profilePicUrl;
   final void Function(String key) onToggle;
   final VoidCallback onToggleTheme;
   final void Function(List<String> names) onUpdateMeds;
@@ -34,9 +32,7 @@ class ProfileScreen extends StatefulWidget {
     required this.reminders,
     required this.cycleLength,
     required this.cycleStartDate,
-    required this.themeMode,
     required this.medicationNames,
-    this.profilePicUrl,
     required this.onToggle,
     required this.onToggleTheme,
     required this.onUpdateMeds,
@@ -112,9 +108,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       initialTime: TimeOfDay(hour: current[0], minute: current[1]),
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
+            colorScheme: isDark
+                ? const ColorScheme.dark(primary: AppColors.sage, onPrimary: Colors.black, surface: Color(0xFF1E1E1E), onSurface: Colors.white)
+                : const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
           ),
           child: child!,
         );
@@ -169,7 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final weightLog = await storage.loadWeightLog();
 
     final buffer = StringBuffer();
-    buffer.writeln('Cycle Day,Pain,Fatigue,Mood,Bloating,Medication,Water(glasses),Weight(kg),Note');
+    buffer.writeln('Cycle Day,Pain,Fatigue,Mood,Bloating,Acne,Sleep,Medication,Water(glasses),Weight(kg),Note');
 
     final sortedDays = logs.keys.toList()..sort();
     for (final day in sortedDays) {
@@ -179,7 +178,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final med = dayMeds.values.any((v) => v) ? 'Yes' : 'No';
       final water = waterLog[day] ?? 0;
       final weight = weightLog[day]?.toString() ?? '';
-      buffer.writeln('$day,${l['pain']},${l['fatigue']},${l['mood']},${l['bloating']},$med,$water,$weight,$note');
+      final acne = l['acne'] ?? 1;
+      final sleep = l['sleep'] ?? 7;
+      buffer.writeln('$day,${l['pain']},${l['fatigue']},${l['mood']},${l['bloating']},$acne,$sleep,$med,$water,$weight,$note');
     }
 
     final dir = await getApplicationDocumentsDirectory();
@@ -236,16 +237,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _confirmLogout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Log out?', style: AppText.display(size: 18)),
-        content: Text('You can sign back in anytime — your data stays saved.', style: AppText.body(size: 13.5, color: AppColors.muted)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: AppText.body(size: 14, color: AppColors.muted))),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Log out', style: AppText.body(size: 14, weight: FontWeight.w700, color: AppColors.rose))),
-        ],
-      ),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Log out?', style: AppText.display(context: context, size: 18)),
+          content: Text('You can sign back in anytime — your data stays saved.', style: AppText.body(context: context, size: 13.5, color: AppColors.muted)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: AppText.body(context: context, size: 14, color: AppColors.muted))),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Log out', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.rose))),
+          ],
+        );
+      },
     );
     if (confirmed == true) await AuthService().signOut();
   }
@@ -253,19 +257,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _confirmDeleteAccount(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete your account?', style: AppText.display(size: 18)),
-        content: Text(
-          'This permanently deletes your account and all logged data, on this device and in the cloud. This can\'t be undone.',
-          style: AppText.body(size: 13.5, color: AppColors.muted),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: AppText.body(size: 14, color: AppColors.muted))),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: AppText.body(size: 14, weight: FontWeight.w700, color: AppColors.rose))),
-        ],
-      ),
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text('Delete your account?', style: AppText.display(context: context, size: 18)),
+          content: Text(
+            'This permanently deletes your account and all logged data, on this device and in the cloud. This can\'t be undone.',
+            style: AppText.body(context: context, size: 13.5, color: AppColors.muted),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('Cancel', style: AppText.body(context: context, size: 14, color: AppColors.muted))),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('Delete', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.rose))),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
@@ -292,10 +299,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final createdAt = user?.metadata.creationTime;
     final memberSince = createdAt != null ? '${_month(createdAt.month)} ${createdAt.year}' : 'recently';
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        Text('You', style: AppText.display(size: 24)),
+        Text('You', style: AppText.display(context: context, size: 24)),
         const SizedBox(height: 16),
 
         SectionCard(
@@ -305,21 +313,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 60,
                 height: 60,
                 decoration: const BoxDecoration(color: AppColors.plum, shape: BoxShape.circle),
-                clipBehavior: Clip.antiAlias,
-                child: widget.profilePicUrl != null
-                    ? Image.network(widget.profilePicUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Center(child: Text(_initials(user?.displayName, email), style: AppText.display(size: 20, color: AppColors.white))))
-                    : Center(child: Text(_initials(user?.displayName, email), style: AppText.display(size: 20, color: AppColors.white))),
+                child: Center(child: Text(_initials(user?.displayName, email), style: AppText.display(context: context, size: 20, color: AppColors.white))),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(displayName, style: AppText.body(size: 16, weight: FontWeight.w700)),
+                    Text(displayName, style: AppText.body(context: context, size: 16, weight: FontWeight.w700)),
                     const SizedBox(height: 3),
-                    Text(email, style: AppText.body(size: 12.5, color: AppColors.muted)),
+                    Text(email, style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
                     const SizedBox(height: 3),
-                    Text('Member since $memberSince', style: AppText.body(size: 11.5, color: AppColors.muted)),
+                    Text('Member since $memberSince', style: AppText.body(context: context, size: 11.5, color: AppColors.muted)),
                   ],
                 ),
               ),
@@ -354,18 +359,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         spacing: 8,
                         runSpacing: 4,
                         children: [
-                          Text(_condition, style: AppText.body(size: 13.5, weight: FontWeight.w700)),
+                          Text(_condition, style: AppText.body(context: context, size: 13.5, weight: FontWeight.w700)),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(color: AppColors.plum.withOpacity(0.08), borderRadius: BorderRadius.circular(99)),
-                            child: Text('${widget.cycleLength}-day cycle', style: AppText.body(size: 10.5, weight: FontWeight.w600, color: AppColors.plum)),
+                            child: Text('${widget.cycleLength}-day cycle', style: AppText.body(context: context, size: 10.5, weight: FontWeight.w600, color: isDark ? AppColors.sageLight : AppColors.plum)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 3),
                       Text(
                         'Last period: ${widget.cycleStartDate.day}/${widget.cycleStartDate.month}/${widget.cycleStartDate.year} · tap to edit',
-                        style: AppText.body(size: 11.5, color: AppColors.muted),
+                        style: AppText.body(context: context, size: 11.5, color: AppColors.muted),
                       ),
                     ],
                   ),
@@ -381,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tracking', style: AppText.display(size: 15)),
+                Text('Tracking', style: AppText.display(context: context, size: 15)),
                 const SizedBox(height: 10),
                 Wrap(
                   spacing: 8,
@@ -390,7 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     return Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                       decoration: BoxDecoration(color: AppColors.plum.withOpacity(0.08), borderRadius: BorderRadius.circular(99)),
-                      child: Text(goal, style: AppText.body(size: 12, weight: FontWeight.w600, color: AppColors.plum)),
+                      child: Text(goal, style: AppText.body(context: context, size: 12, weight: FontWeight.w600, color: isDark ? AppColors.sageLight : AppColors.plum)),
                     );
                   }).toList(),
                 ),
@@ -402,11 +407,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Reminders', style: AppText.display(size: 16)),
+              Text('Reminders', style: AppText.display(context: context, size: 16)),
               const SizedBox(height: 4),
               _timesLoading
                   ? const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: LinearProgressIndicator(color: AppColors.plum))
-                  : Column(children: [_reminderRow('Medication reminder', 'medication'), const SizedBox(height: 6), _reminderRow('Daily log nudge', 'dailyLog')]),
+                  : Column(children: [_reminderRow(context, 'Medication reminder', 'medication'), const SizedBox(height: 6), _reminderRow(context, 'Daily log nudge', 'dailyLog')]),
             ],
           ),
         ),
@@ -417,16 +422,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(color: AppColors.plum.withOpacity(0.08), borderRadius: BorderRadius.circular(14)),
-                child: const Icon(Icons.fingerprint, size: 18, color: AppColors.plum),
+                child: Icon(Icons.fingerprint, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('App lock', style: AppText.body(size: 13.5, weight: FontWeight.w700)),
+                    Text('App lock', style: AppText.body(context: context, size: 13.5, weight: FontWeight.w700)),
                     const SizedBox(height: 2),
-                    Text('Require fingerprint or face unlock to open Cadence', style: AppText.body(size: 11.5, color: AppColors.muted)),
+                    Text('Require fingerprint or face unlock to open Cadence', style: AppText.body(context: context, size: 11.5, color: AppColors.muted)),
                   ],
                 ),
               ),
@@ -435,27 +440,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
 
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Text('Settings', style: AppText.display(context: context, size: 16)),
+        ),
+
         SectionCard(
           padding: EdgeInsets.zero,
           child: Column(
             children: [
               _actionRow(context, icon: Icons.medication_outlined, label: 'Manage medications', onTap: () => _manageMeds(context)),
-              _divider(),
+              _divider(context),
               _actionRow(context,
-                  icon: widget.themeMode == 'light' ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                  label: widget.themeMode == 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode',
+                  icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                  label: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
                   onTap: widget.onToggleTheme),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.lock_reset, label: 'Change password', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.download_outlined, label: 'Export JSON', onTap: () => _exportData(context)),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.table_chart_outlined, label: 'Export CSV', onTap: () => _exportCSV(context)),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.shield_outlined, label: 'Privacy Policy', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()))),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.description_outlined, label: 'Terms of Service', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TermsScreen()))),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.delete_outline, label: 'Delete my account', labelColor: AppColors.rose, onTap: () => _confirmDeleteAccount(context)),
             ],
           ),
@@ -466,9 +477,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             children: [
               _actionRow(context, icon: Icons.help_outline, label: 'Help & FAQ', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpScreen()))),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.mail_outline, label: 'Email us', onTap: () => _contactEmail(context)),
-              _divider(),
+              _divider(context),
               _actionRow(context, icon: Icons.chat_outlined, label: 'WhatsApp us', onTap: () => _contactWhatsapp(context)),
             ],
           ),
@@ -477,7 +488,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('Cadence · Version 1.6.0', style: AppText.body(size: 11, color: AppColors.muted)),
+            child: Text('Cadence · Version 1.6.0', style: AppText.body(context: context, size: 11, color: AppColors.muted)),
           ),
         ),
 
@@ -486,7 +497,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: OutlinedButton.icon(
             onPressed: () => _confirmLogout(context),
             icon: const Icon(Icons.logout, size: 17, color: AppColors.rose),
-            label: Text('Log out', style: AppText.body(size: 13.5, weight: FontWeight.w600, color: AppColors.rose)),
+            label: Text('Log out', style: AppText.body(context: context, size: 13.5, weight: FontWeight.w600, color: AppColors.rose)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: AppColors.rose.withOpacity(0.4)),
               padding: const EdgeInsets.symmetric(vertical: 13),
@@ -498,16 +509,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _reminderRow(String label, String key) {
+  Widget _reminderRow(BuildContext context, String label, String key) {
     final enabled = widget.reminders[key] ?? false;
     final time = _times[key] ?? [9, 0];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: AppText.body(size: 13.5)),
+              Text(label, style: AppText.body(context: context, size: 13.5)),
               const SizedBox(height: 6),
               if (enabled)
                 GestureDetector(
@@ -518,17 +530,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time, size: 13, color: AppColors.plum),
+                        Icon(Icons.access_time, size: 13, color: isDark ? AppColors.sageLight : AppColors.plum),
                         const SizedBox(width: 5),
-                        Text(_formatTime(time), style: AppText.body(size: 11.5, color: AppColors.plum, weight: FontWeight.w700)),
+                        Text(_formatTime(time), style: AppText.body(context: context, size: 11.5, color: isDark ? AppColors.sageLight : AppColors.plum, weight: FontWeight.w700)),
                         const SizedBox(width: 2),
-                        const Icon(Icons.edit, size: 11, color: AppColors.plum),
+                        Icon(Icons.edit, size: 11, color: isDark ? AppColors.sageLight : AppColors.plum),
                       ],
                     ),
                   ),
                 )
               else
-                Text('Off', style: AppText.body(size: 11.5, color: AppColors.muted)),
+                Text('Off', style: AppText.body(context: context, size: 11.5, color: AppColors.muted)),
             ],
           ),
         ),
@@ -538,15 +550,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _actionRow(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap, Color? labelColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: labelColor ?? AppColors.plum),
+            Icon(icon, size: 18, color: labelColor ?? (isDark ? AppColors.sageLight : AppColors.plum)),
             const SizedBox(width: 14),
-            Expanded(child: Text(label, style: AppText.body(size: 13.5, weight: FontWeight.w600, color: labelColor ?? AppColors.ink))),
+            Expanded(child: Text(label, style: AppText.body(context: context, size: 13.5, weight: FontWeight.w600, color: labelColor ?? (isDark ? Colors.white : AppColors.ink)))),
             const Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
           ],
         ),
@@ -554,7 +567,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _divider() => const Divider(height: 1, color: AppColors.sandDeep, indent: 20, endIndent: 20);
+  Widget _divider(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Divider(height: 1, color: isDark ? Colors.white10 : AppColors.sandDeep, indent: 20, endIndent: 20);
+  }
 
   String _month(int m) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -604,18 +620,18 @@ class _ManageMedsSheetState extends State<_ManageMedsSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Your Medications', style: AppText.display(size: 20)),
+          Text('Your Medications', style: AppText.display(context: context, size: 20)),
           const SizedBox(height: 16),
           if (_meds.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text('No medications added yet.', style: AppText.body(size: 14, color: AppColors.muted)),
+              child: Text('No medications added yet.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
             ),
           ..._meds.map((m) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                Expanded(child: Text(m, style: AppText.body(size: 14, weight: FontWeight.w600))),
+                Expanded(child: Text(m, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
                 IconButton(onPressed: () => setState(() => _meds.remove(m)), icon: const Icon(Icons.remove_circle_outline, color: AppColors.rose, size: 20)),
               ],
             ),
@@ -626,7 +642,7 @@ class _ManageMedsSheetState extends State<_ManageMedsSheet> {
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
                   child: TextField(
                     controller: _controller,
                     decoration: const InputDecoration(hintText: 'Add new med...', border: InputBorder.none, isDense: true),
@@ -643,7 +659,7 @@ class _ManageMedsSheetState extends State<_ManageMedsSheet> {
                     });
                   }
                 },
-                icon: const Icon(Icons.add_circle, color: AppColors.plum, size: 28),
+                icon: Icon(Icons.add_circle, color: isDark ? AppColors.sageLight : AppColors.plum, size: 28),
               ),
             ],
           ),
@@ -656,7 +672,7 @@ class _ManageMedsSheetState extends State<_ManageMedsSheet> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.plum, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99))),
-              child: Text('Save list', style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+              child: Text('Save list', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             ),
           ),
         ],

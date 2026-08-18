@@ -18,24 +18,41 @@ class AppColors {
 }
 
 class AppText {
-  static TextStyle display({double size = 24, FontWeight weight = FontWeight.w600, Color color = AppColors.ink}) {
-    return GoogleFonts.fraunces(fontSize: size, fontWeight: weight, color: color);
+  static TextStyle display({required BuildContext context, double size = 24, FontWeight weight = FontWeight.w600, Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GoogleFonts.fraunces(fontSize: size, fontWeight: weight, color: color ?? (isDark ? Colors.white : AppColors.ink));
   }
 
-  static TextStyle body({double size = 14, FontWeight weight = FontWeight.w400, Color color = AppColors.ink}) {
-    return GoogleFonts.publicSans(fontSize: size, fontWeight: weight, color: color);
+  static TextStyle body({required BuildContext context, double size = 14, FontWeight weight = FontWeight.w400, Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GoogleFonts.publicSans(fontSize: size, fontWeight: weight, color: color ?? (isDark ? Colors.white70 : AppColors.ink));
   }
 
-  static TextStyle mono({double size = 12, Color color = AppColors.plum}) {
-    return GoogleFonts.ibmPlexMono(fontSize: size, color: color);
+  static TextStyle mono({required BuildContext context, double size = 12, Color? color}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GoogleFonts.ibmPlexMono(fontSize: size, color: color ?? (isDark ? AppColors.sageLight : AppColors.plum));
   }
 }
 
-ThemeData buildAppTheme() {
+ThemeData buildAppTheme({bool isDark = false}) {
+  final textColor = isDark ? AppColors.white : AppColors.ink;
   return ThemeData(
-    scaffoldBackgroundColor: AppColors.sand,
+    brightness: isDark ? Brightness.dark : Brightness.light,
+    scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : AppColors.sand,
+    cardColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
     fontFamily: GoogleFonts.publicSans().fontFamily,
-    colorScheme: ColorScheme.fromSeed(seedColor: AppColors.plum, brightness: Brightness.light),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.plum,
+      brightness: isDark ? Brightness.dark : Brightness.light,
+      surface: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+    ),
     useMaterial3: true,
+    textTheme: TextTheme(
+      bodyLarge: GoogleFonts.publicSans(color: textColor),
+      bodyMedium: GoogleFonts.publicSans(color: textColor),
+      displayLarge: GoogleFonts.fraunces(color: textColor),
+      displayMedium: GoogleFonts.fraunces(color: textColor),
+      displaySmall: GoogleFonts.fraunces(color: textColor),
+    ),
   );
 }

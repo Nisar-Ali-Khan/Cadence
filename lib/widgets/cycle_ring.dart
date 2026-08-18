@@ -35,14 +35,14 @@ class CycleRing extends StatelessWidget {
         children: [
           CustomPaint(
             size: const Size(260, 260),
-            painter: CycleRingPainter(cycleData: cycleData, currentDay: currentDay),
+            painter: CycleRingPainter(cycleData: cycleData, currentDay: currentDay, isDark: Theme.of(context).brightness == Brightness.dark),
           ),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Day $currentDay', style: AppText.display(size: 28)),
+              Text('Day $currentDay', style: AppText.display(context: context, size: 28)),
               const SizedBox(height: 4),
-              Text('of $cycleLength · ${phaseForDay(currentDay, cycleLength)}', style: AppText.body(size: 12, color: AppColors.plum)),
+              Text('of $cycleLength · ${phaseForDay(currentDay, cycleLength)}', style: AppText.body(context: context, size: 12, color: Theme.of(context).brightness == Brightness.dark ? AppColors.sageLight : AppColors.plum)),
             ],
           ),
         ],
@@ -55,7 +55,8 @@ class CycleRingPainter extends CustomPainter {
   final List<double> cycleData;
   final int currentDay;
 
-  CycleRingPainter({required this.cycleData, required this.currentDay});
+  CycleRingPainter({required this.cycleData, required this.currentDay, required this.isDark});
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -63,7 +64,7 @@ class CycleRingPainter extends CustomPainter {
     final radius = size.width / 2 - 36;
 
     final trackPaint = Paint()
-      ..color = AppColors.sandDeep
+      ..color = isDark ? Colors.white10 : AppColors.sandDeep
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     canvas.drawCircle(center, radius, trackPaint);

@@ -61,11 +61,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Cadence', style: AppText.display(size: 30, weight: FontWeight.w600, color: AppColors.white)),
+                Text('Cadence', style: AppText.display(context: context, size: 30, weight: FontWeight.w600, color: AppColors.white)),
                 const SizedBox(height: 6),
                 Text(
                   'PCOS CARE COMPANION',
-                  style: AppText.body(size: 11, weight: FontWeight.w600, color: AppColors.sageLight).copyWith(letterSpacing: 2.5),
+                  style: AppText.body(context: context, size: 11, weight: FontWeight.w600, color: AppColors.sageLight).copyWith(letterSpacing: 2.5),
                 ),
               ],
             ),

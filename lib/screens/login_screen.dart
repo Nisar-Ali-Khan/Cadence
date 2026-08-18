@@ -53,8 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -71,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 68,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.plum, width: 2),
+                        border: Border.all(color: isDark ? AppColors.sageLight : AppColors.plum, width: 2),
                       ),
                       child: Center(
                         child: Container(
@@ -83,12 +84,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text('Welcome back', textAlign: TextAlign.center, style: AppText.display(size: 26)),
+                  Text('Welcome back', textAlign: TextAlign.center, style: AppText.display(context: context, size: 26)),
                   const SizedBox(height: 6),
                   Text(
                     'Sign in to continue tracking your cycle',
                     textAlign: TextAlign.center,
-                    style: AppText.body(size: 13, color: AppColors.muted),
+                    style: AppText.body(context: context, size: 13, color: AppColors.muted),
                   ),
                   const SizedBox(height: 32),
                   AuthTextField(
@@ -112,12 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                       ),
-                      child: Text('Forgot password?', style: AppText.body(size: 12.5, weight: FontWeight.w600, color: AppColors.plum)),
+                      child: Text('Forgot password?', style: AppText.body(context: context, size: 12.5, weight: FontWeight.w600, color: isDark ? AppColors.sageLight : AppColors.plum)),
                     ),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: 4),
-                    Text(_error!, style: AppText.body(size: 12.5, color: AppColors.rose)),
+                    Text(_error!, style: AppText.body(context: context, size: 12.5, color: AppColors.rose)),
                   ],
                   const SizedBox(height: 12),
                   SizedBox(
@@ -131,17 +132,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: _loading
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-                          : Text('Sign in', style: AppText.body(size: 15, weight: FontWeight.w600, color: AppColors.white)),
+                          : Text('Sign in', style: AppText.body(context: context, size: 15, weight: FontWeight.w600, color: AppColors.white)),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ", style: AppText.body(size: 13, color: AppColors.muted)),
+                      Text("Don't have an account? ", style: AppText.body(context: context, size: 13, color: AppColors.muted)),
                       GestureDetector(
                         onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SignupScreen())),
-                        child: Text('Sign up', style: AppText.body(size: 13, weight: FontWeight.w700, color: AppColors.plum)),
+                        child: Text('Sign up', style: AppText.body(context: context, size: 13, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum)),
                       ),
                     ],
                   ),

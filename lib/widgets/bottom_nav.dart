@@ -23,17 +23,18 @@ class CadenceBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(top: BorderSide(color: AppColors.sandDeep)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(top: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(items.length, (i) {
           final active = i == activeIndex;
-          final color = active ? AppColors.plum : AppColors.muted;
+          final color = active ? (isDark ? AppColors.sage : AppColors.plum) : AppColors.muted;
           return GestureDetector(
             onTap: () => onTap(i),
             behavior: HitTestBehavior.opaque,
@@ -42,7 +43,7 @@ class CadenceBottomNav extends StatelessWidget {
               children: [
                 Icon(items[i].icon, size: 22, color: color),
                 const SizedBox(height: 2),
-                Text(items[i].label, style: AppText.body(size: 10, weight: FontWeight.w600, color: color)),
+                Text(items[i].label, style: AppText.body(context: context, size: 10, weight: FontWeight.w600, color: color)),
               ],
             ),
           );

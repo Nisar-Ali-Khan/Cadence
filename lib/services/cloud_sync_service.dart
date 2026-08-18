@@ -23,7 +23,6 @@ class CloudSyncService {
     required Map<int, int> waterLog,
     required List<String> medicationNames,
     required String themeMode,
-    String? profilePicUrl,
   }) async {
     try {
       await _doc.set({
@@ -42,7 +41,6 @@ class CloudSyncService {
         'waterLog': waterLog.map((k, v) => MapEntry(k.toString(), v)),
         'medicationNames': medicationNames,
         'themeMode': themeMode,
-        'profilePicUrl': profilePicUrl,
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (_) {

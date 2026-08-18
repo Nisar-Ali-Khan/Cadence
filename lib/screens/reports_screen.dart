@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/report_item.dart';
 import '../services/pdf_service.dart';
+import '../widgets/section_card.dart';
 
 class ReportsScreen extends StatelessWidget {
   final List<ReportItem> reports;
@@ -22,16 +23,16 @@ class ReportsScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        Text('Reports', style: AppText.display(size: 24)),
+        Text('Reports', style: AppText.display(context: context, size: 24)),
         const SizedBox(height: 4),
-        Text('Doctor-ready summaries of your logs', style: AppText.body(size: 13, color: AppColors.muted)),
+        Text('Doctor-ready summaries of your logs', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: onGenerate,
             icon: const Icon(Icons.add, size: 18),
-            label: Text('Generate new report', style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+            label: Text('Generate new report', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.plum,
               foregroundColor: AppColors.white,
@@ -43,20 +44,18 @@ class ReportsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         if (reports.isEmpty)
-          Container(
-            width: double.infinity,
+          SectionCard(
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-            decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24)),
             child: Column(
               children: [
                 const Icon(Icons.description_outlined, size: 40, color: AppColors.muted),
                 const SizedBox(height: 14),
-                Text('No reports yet', style: AppText.display(size: 16)),
+                Text('No reports yet', style: AppText.display(context: context, size: 16)),
                 const SizedBox(height: 6),
                 Text(
                   'Generate your first doctor-ready summary once you\'ve logged a few days.',
                   textAlign: TextAlign.center,
-                  style: AppText.body(size: 13, color: AppColors.muted),
+                  style: AppText.body(context: context, size: 13, color: AppColors.muted),
                 ),
               ],
             ),
@@ -106,14 +105,8 @@ class _ReportTileState extends State<_ReportTile> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+    return SectionCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: AppColors.plum.withOpacity(0.06), blurRadius: 16, offset: const Offset(0, 4))],
-      ),
       child: Row(
         children: [
           Container(
@@ -126,9 +119,9 @@ class _ReportTileState extends State<_ReportTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.report.title, style: AppText.body(size: 13.5, weight: FontWeight.w600)),
+                Text(widget.report.title, style: AppText.body(context: context, size: 13.5, weight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(widget.report.date, style: AppText.mono(size: 11.5, color: AppColors.muted)),
+                Text(widget.report.date, style: AppText.mono(context: context, size: 11.5, color: AppColors.muted)),
               ],
             ),
           ),

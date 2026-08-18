@@ -24,6 +24,8 @@ class PdfService {
     final avgFatigue = avg('fatigue');
     final avgMood = avg('mood');
     final avgBloating = avg('bloating');
+    final avgAcne = avg('acne');
+    final avgSleep = avg('sleep');
 
     String topSymptomNote = 'Not enough data logged yet to identify a leading symptom.';
     if (sortedDays.isNotEmpty) {
@@ -31,6 +33,7 @@ class PdfService {
         MapEntry('pain', avgPain),
         MapEntry('fatigue', avgFatigue),
         MapEntry('bloating', avgBloating),
+        MapEntry('acne', avgAcne),
       ]..sort((a, b) => b.value.compareTo(a.value));
       topSymptomNote = 'Highest average symptom: ${ranked.first.key} at ${ranked.first.value.toStringAsFixed(1)}/10.';
     }
@@ -68,6 +71,8 @@ class PdfService {
                     _row('Fatigue', avgFatigue),
                     _row('Mood', avgMood),
                     _row('Bloating', avgBloating),
+                    _row('Acne', avgAcne),
+                    _row('Sleep Quality', avgSleep),
                   ],
                 ),
                 pw.SizedBox(height: 20),

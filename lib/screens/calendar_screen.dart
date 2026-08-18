@@ -64,20 +64,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.sand,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-        title: Text('Cycle calendar', style: AppText.display(size: 18)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.ink),
+        title: Text('Cycle calendar', style: AppText.display(context: context, size: 18)),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tap any past or current day to view or update its log.', style: AppText.body(size: 12.5, color: AppColors.muted)),
+            Text('Tap any past or current day to view or update its log.', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
             const SizedBox(height: 16),
             Expanded(
               child: GridView.builder(
@@ -100,17 +101,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       decoration: BoxDecoration(
                         color: hasLog
                             ? _colorFor(severity)
-                            : (isFuture ? AppColors.sandDeep.withOpacity(0.5) : AppColors.white),
+                            : (isFuture ? (isDark ? Colors.white10 : AppColors.sandDeep.withOpacity(0.5)) : (isDark ? Colors.white12 : AppColors.white)),
                         borderRadius: BorderRadius.circular(12),
                         border: isToday ? Border.all(color: AppColors.amber, width: 2) : null,
                       ),
                       child: Center(
                         child: Text(
                           '$day',
-                          style: AppText.body(
+                          style: AppText.body(context: context,
                             size: 12.5,
                             weight: FontWeight.w700,
-                            color: hasLog ? AppColors.white : (isFuture ? AppColors.muted : AppColors.ink),
+                            color: hasLog ? AppColors.white : (isFuture ? AppColors.muted : (isDark ? Colors.white : AppColors.ink)),
                           ),
                         ),
                       ),
@@ -124,10 +125,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               spacing: 16,
               runSpacing: 8,
               children: [
-                _legendDot('Not logged', AppColors.white, bordered: true),
-                _legendDot('Logged (low)', AppColors.sageLight),
-                _legendDot('Logged (high)', AppColors.rose),
-                _legendDot('Upcoming', AppColors.sandDeep),
+                _legendDot(context, 'Not logged', isDark ? Colors.white12 : AppColors.white, bordered: !isDark),
+                _legendDot(context, 'Logged (low)', AppColors.sageLight),
+                _legendDot(context, 'Logged (high)', AppColors.rose),
+                _legendDot(context, 'Upcoming', isDark ? Colors.white10 : AppColors.sandDeep),
               ],
             ),
           ],
@@ -136,7 +137,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _legendDot(String label, Color color, {bool bordered = false}) {
+  Widget _legendDot(BuildContext context, String label, Color color, {bool bordered = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -150,7 +151,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         const SizedBox(width: 6),
-        Text(label, style: AppText.body(size: 11, color: AppColors.muted)),
+        Text(label, style: AppText.body(context: context, size: 11, color: AppColors.muted)),
       ],
     );
   }
@@ -178,6 +179,7 @@ class _DayEditSheetState extends State<_DayEditSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -185,9 +187,9 @@ class _DayEditSheetState extends State<_DayEditSheet> {
         top: 20,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.sand,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : AppColors.sand,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -197,13 +199,13 @@ class _DayEditSheetState extends State<_DayEditSheet> {
             child: Container(
               width: 36,
               height: 4,
-              decoration: BoxDecoration(color: AppColors.sandDeep, borderRadius: BorderRadius.circular(99)),
+              decoration: BoxDecoration(color: isDark ? Colors.white12 : AppColors.sandDeep, borderRadius: BorderRadius.circular(99)),
             ),
           ),
           const SizedBox(height: 16),
-          Text('Day ${widget.day}', style: AppText.display(size: 20)),
+          Text('Day ${widget.day}', style: AppText.display(context: context, size: 20)),
           const SizedBox(height: 4),
-          Text('View or update this day\'s log', style: AppText.body(size: 12.5, color: AppColors.muted)),
+          Text('View or update this day\'s log', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
           const SizedBox(height: 16),
           SymptomSlider(
             label: 'Pain', icon: Icons.bolt, accent: AppColors.rose,
@@ -236,7 +238,7 @@ class _DayEditSheetState extends State<_DayEditSheet> {
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: Text('Save', style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+              child: Text('Save', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             ),
           ),
         ],

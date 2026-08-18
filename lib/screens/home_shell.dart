@@ -12,6 +12,7 @@ import 'trends_screen.dart';
 import 'reports_screen.dart';
 import 'profile_screen.dart';
 import 'learn_screen.dart';
+import '../main.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -34,8 +35,6 @@ class _HomeShellState extends State<HomeShell> {
   int cycleLength = 28;
   String condition = 'PCOS';
   String weightUnit = 'kg';
-  String themeMode = 'light';
-  String? profilePicUrl;
 
   int get currentDay {
     final days = DateTime.now().difference(DateTime(cycleStartDate.year, cycleStartDate.month, cycleStartDate.day)).inDays;
@@ -55,7 +54,7 @@ class _HomeShellState extends State<HomeShell> {
   double? get todayWeightKg => weightLog[currentDay];
 
   List<double> cycleData = [];
-  Map<String, double> todayLog = {'pain': 3, 'fatigue': 4, 'mood': 5, 'bloating': 3};
+  Map<String, double> todayLog = {'pain': 3, 'fatigue': 4, 'mood': 5, 'bloating': 3, 'acne': 1, 'sleep': 7};
   bool logged = false;
   List<ReportItem> reports = [];
   Map<String, bool> reminders = {'medication': true, 'dailyLog': true};
@@ -121,8 +120,6 @@ class _HomeShellState extends State<HomeShell> {
     final localMedicationLog = await _storage.loadMedicationLog();
     final localWaterLog = await _storage.loadWaterLog();
     final localMedNames = await _storage.loadMedicationNames();
-    final localTheme = await _storage.loadThemeMode();
-    final localProfilePic = await _storage.loadProfilePicUrl();
 
     DateTime resolvedStart = localStart;
     int resolvedCycleLength = loadedCycleLength;
@@ -138,8 +135,6 @@ class _HomeShellState extends State<HomeShell> {
     Map<int, Map<String, bool>> resolvedMedicationLog = localMedicationLog;
     Map<int, int> resolvedWaterLog = localWaterLog;
     List<String> resolvedMedNames = localMedNames;
-    String resolvedTheme = localTheme;
-    String? resolvedProfilePic = localProfilePic;
 
     if (cloudData != null) {
       resolvedStart = DateTime.tryParse(cloudData['cycleStartDate'] ?? '') ?? localStart;
@@ -194,8 +189,6 @@ class _HomeShellState extends State<HomeShell> {
       resolvedWaterLog = cloudWater.map((k, v) => MapEntry(int.parse(k.toString()), (v as num).toInt()));
 
       resolvedMedNames = ((cloudData['medicationNames'] as List?) ?? localMedNames).map((e) => e.toString()).toList();
-      resolvedTheme = (cloudData['themeMode'] as String?) ?? localTheme;
-      resolvedProfilePic = (cloudData['profilePicUrl'] as String?) ?? localProfilePic;
 
       await _storage.saveCycleSetup(lastPeriodDate: resolvedStart, cycleLength: resolvedCycleLength);
       await _storage.saveCycleData(resolvedCycleData);
@@ -209,8 +202,6 @@ class _HomeShellState extends State<HomeShell> {
       await _storage.saveMedicationLog(resolvedMedicationLog);
       await _storage.saveWaterLog(resolvedWaterLog);
       await _storage.saveMedicationNames(resolvedMedNames);
-      await _storage.saveThemeMode(resolvedTheme);
-      if (resolvedProfilePic != null) await _storage.saveProfilePicUrl(resolvedProfilePic);
       for (final entry in resolvedReminderTimes.entries) {
         await _storage.saveReminderTime(entry.key, entry.value[0], entry.value[1]);
       }
@@ -238,8 +229,6 @@ class _HomeShellState extends State<HomeShell> {
       medicationLog = resolvedMedicationLog;
       waterLog = resolvedWaterLog;
       medicationNames = resolvedMedNames;
-      themeMode = resolvedTheme;
-      profilePicUrl = resolvedProfilePic;
       _loading = false;
     });
 
@@ -251,6 +240,7 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _syncToCloud({Map<String, List<int>>? reminderTimes}) async {
     final times = reminderTimes ?? await _storage.loadReminderTimes();
+    final currentTheme = CadenceApp.of(context).themeMode == ThemeMode.dark ? 'dark' : 'light';
     await _cloud.pushAll(
       cycleStartDate: cycleStartDate,
       cycleLength: cycleLength,
@@ -266,8 +256,7 @@ class _HomeShellState extends State<HomeShell> {
       medicationLog: medicationLog,
       waterLog: waterLog,
       medicationNames: medicationNames,
-      themeMode: themeMode,
-      profilePicUrl: profilePicUrl,
+      themeMode: currentTheme,
     );
   }
 
@@ -291,10 +280,8 @@ class _HomeShellState extends State<HomeShell> {
     _syncToCloud();
   }
 
-  void toggleTheme() {
-    final newMode = themeMode == 'light' ? 'dark' : 'light';
-    setState(() => themeMode = newMode);
-    _storage.saveThemeMode(newMode);
+  Future<void> toggleTheme() async {
+    await CadenceApp.of(context).toggleTheme();
     _syncToCloud();
   }
 
@@ -314,7 +301,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   void saveLog() {
-    final severity = (todayLog['pain']! + todayLog['fatigue']! + (10 - todayLog['mood']!) + todayLog['bloating']!) / 4;
+    final severity = (todayLog['pain']! + todayLog['fatigue']! + (10 - todayLog['mood']!) + todayLog['bloating']! + todayLog['acne']! + (10 - todayLog['sleep']!)) / 6;
     final safeDay = currentDay.clamp(1, cycleData.length);
     setState(() {
       cycleData[safeDay - 1] = double.parse(severity.toStringAsFixed(1));
@@ -328,7 +315,7 @@ class _HomeShellState extends State<HomeShell> {
   }
 
   void saveDayLog(int day, Map<String, double> values) {
-    final severity = (values['pain']! + values['fatigue']! + (10 - values['mood']!) + values['bloating']!) / 4;
+    final severity = (values['pain']! + values['fatigue']! + (10 - values['mood']!) + values['bloating']! + (values['acne'] ?? 1) + (10 - (values['sleep'] ?? 7))) / 6;
     final safeIndex = (day - 1).clamp(0, cycleData.length - 1);
 
     setState(() {
@@ -417,9 +404,7 @@ class _HomeShellState extends State<HomeShell> {
         reminders: reminders,
         cycleLength: cycleLength,
         cycleStartDate: cycleStartDate,
-        themeMode: themeMode,
         medicationNames: medicationNames,
-        profilePicUrl: profilePicUrl,
         onToggle: toggleReminder,
         onToggleTheme: toggleTheme,
         onUpdateMeds: updateMedicationNames,
@@ -430,14 +415,12 @@ class _HomeShellState extends State<HomeShell> {
           final newGoals = await _storage.loadTrackingGoals();
           final newStart = await _storage.loadOrInitCycleStart();
           final newLength = await _storage.loadCycleLength();
-          final newProfilePic = await _storage.loadProfilePicUrl();
           
           setState(() {
             condition = newCondition;
             trackingGoals = newGoals;
             cycleStartDate = newStart;
             cycleLength = newLength;
-            profilePicUrl = newProfilePic;
           });
 
           // 2. Now push the updated state to cloud.
@@ -449,30 +432,18 @@ class _HomeShellState extends State<HomeShell> {
       ),
     ];
 
-    return Theme(
-      data: themeMode == 'dark' ? _darkTheme() : _lightTheme(),
-      child: Scaffold(
-        backgroundColor: themeMode == 'dark' ? const Color(0xFF121212) : AppColors.sand,
-        body: SafeArea(
-          child: Column(
-            children: [
-              if (_isOffline) _buildOfflineBanner(),
-              Expanded(child: screens[activeIndex]),
-            ],
-          ),
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            if (_isOffline) _buildOfflineBanner(),
+            Expanded(child: screens[activeIndex]),
+          ],
         ),
-        bottomNavigationBar: CadenceBottomNav(activeIndex: activeIndex, onTap: (i) => setState(() => activeIndex = i)),
       ),
+      bottomNavigationBar: CadenceBottomNav(activeIndex: activeIndex, onTap: (i) => setState(() => activeIndex = i)),
     );
   }
-
-  ThemeData _lightTheme() => ThemeData(brightness: Brightness.light, primaryColor: AppColors.plum);
-  ThemeData _darkTheme() => ThemeData(
-    brightness: Brightness.dark,
-    primaryColor: AppColors.plum,
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    cardColor: const Color(0xFF1E1E1E),
-  );
 
   Widget _buildOfflineBanner() {
     return Container(
@@ -483,7 +454,7 @@ class _HomeShellState extends State<HomeShell> {
         children: [
           const Icon(Icons.cloud_off_outlined, size: 14, color: AppColors.amber),
           const SizedBox(width: 8),
-          Text('You\'re offline — changes will sync once you\'re back online.', style: AppText.body(size: 11.5, weight: FontWeight.w600, color: AppColors.ink)),
+          Text('You\'re offline — changes will sync once you\'re back online.', style: AppText.body(context: context, size: 11.5, weight: FontWeight.w600, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.ink)),
         ],
       ),
     );
@@ -493,31 +464,33 @@ class _HomeShellState extends State<HomeShell> {
 class _HomeSkeleton extends StatelessWidget {
   const _HomeSkeleton();
 
-  Widget _bar({double width = double.infinity, double height = 16}) {
-    return Container(width: width, height: height, decoration: BoxDecoration(color: AppColors.sandDeep, borderRadius: BorderRadius.circular(8)));
+  Widget _bar(BuildContext context, {double width = double.infinity, double height = 16}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(width: width, height: height, decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sandDeep, borderRadius: BorderRadius.circular(8)));
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _bar(width: 140, height: 22),
+              _bar(context, width: 140, height: 22),
               const SizedBox(height: 6),
-              _bar(width: 100, height: 12),
+              _bar(context, width: 100, height: 12),
               const SizedBox(height: 20),
               Container(
                 height: 280,
-                decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24)),
-                child: Center(child: Container(width: 180, height: 180, decoration: const BoxDecoration(color: AppColors.sandDeep, shape: BoxShape.circle))),
+                decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(24)),
+                child: Center(child: Container(width: 180, height: 180, decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sandDeep, shape: BoxShape.circle))),
               ),
               const SizedBox(height: 16),
-              Container(height: 220, decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24))),
+              Container(height: 220, decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(24))),
             ],
           ),
         ),

@@ -48,31 +48,32 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.sand,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-        title: Text('Change password', style: AppText.display(size: 18)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.ink),
+        title: Text('Change password', style: AppText.display(context: context, size: 18)),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: _success ? _buildSuccessState() : _buildForm(),
+          child: _success ? _buildSuccessState(context) : _buildForm(context),
         ),
       ),
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(BuildContext context) {
     return Form(
       key: _formKey,
       child: ListView(
         children: [
           Text(
             'Enter your current password, then choose a new one.',
-            style: AppText.body(size: 13, color: AppColors.muted),
+            style: AppText.body(context: context, size: 13, color: AppColors.muted),
           ),
           const SizedBox(height: 22),
           AuthTextField(
@@ -100,7 +101,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 12),
-            Text(_error!, style: AppText.body(size: 12.5, color: AppColors.rose)),
+            Text(_error!, style: AppText.body(context: context, size: 12.5, color: AppColors.rose)),
           ],
           const SizedBox(height: 22),
           SizedBox(
@@ -114,7 +115,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               child: _loading
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-                  : Text('Update password', style: AppText.body(size: 15, weight: FontWeight.w600, color: AppColors.white)),
+                  : Text('Update password', style: AppText.body(context: context, size: 15, weight: FontWeight.w600, color: AppColors.white)),
             ),
           ),
         ],
@@ -122,7 +123,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  Widget _buildSuccessState() {
+  Widget _buildSuccessState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -135,9 +136,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             child: const Icon(Icons.check, size: 32, color: AppColors.sage),
           ),
           const SizedBox(height: 20),
-          Text('Password updated', style: AppText.display(size: 20)),
+          Text('Password updated', style: AppText.display(context: context, size: 20)),
           const SizedBox(height: 8),
-          Text('Use your new password next time you sign in.', style: AppText.body(size: 13, color: AppColors.muted)),
+          Text('Use your new password next time you sign in.', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -149,7 +150,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
                 elevation: 0,
               ),
-              child: Text('Done', style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+              child: Text('Done', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             ),
           ),
         ],

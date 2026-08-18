@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'dart:io';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/storage_service.dart';
@@ -25,9 +22,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   int _cycleLength = 28;
   List<String> _trackingGoals = [];
   String _condition = 'PCOS';
-  String? _profilePicUrl;
-  File? _imageFile;
-  final _picker = ImagePicker();
 
   static const _allGoals = ['Cycle tracking', 'Symptoms', 'Mood & energy', 'Weight'];
   static const _allConditions = ['PCOS', 'Endometriosis', 'Fibromyalgia', 'Autoimmune condition'];
@@ -46,33 +40,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final length = await _storage.loadCycleLength();
     final goals = await _storage.loadTrackingGoals();
     final condition = await _storage.loadCondition();
-    final profilePic = await _storage.loadProfilePicUrl();
     if (!mounted) return;
     setState(() {
       _lastPeriodDate = start;
       _cycleLength = length;
       _trackingGoals = goals;
       _condition = condition;
-      _profilePicUrl = profilePic;
       _loading = false;
     });
-  }
-
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 50);
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-    }
-  }
-
-  Future<String?> _uploadImage(File file) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return null;
-    final ref = FirebaseStorage.instance.ref().child('profile_pics').child('$uid.jpg');
-    await ref.putFile(file);
-    return await ref.getDownloadURL();
   }
 
   @override
@@ -89,9 +64,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       firstDate: DateTime(now.year - 2),
       lastDate: now,
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
+            colorScheme: isDark
+                ? const ColorScheme.dark(primary: AppColors.sage, onPrimary: Colors.black, surface: Color(0xFF1E1E1E), onSurface: Colors.white)
+                : const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
           ),
           child: child!,
         );
@@ -107,11 +85,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      String? updatedPicUrl = _profilePicUrl;
-      if (_imageFile != null) {
-        updatedPicUrl = await _uploadImage(_imageFile!);
-      }
-
       if (_name.text.trim().isNotEmpty) {
         await _auth.currentUser?.updateDisplayName(_name.text.trim());
       }
@@ -121,9 +94,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
       await _storage.saveTrackingGoals(_trackingGoals);
       await _storage.saveCondition(_condition);
-      if (updatedPicUrl != null) {
-        await _storage.saveProfilePicUrl(updatedPicUrl);
-      }
       
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -141,14 +111,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final email = _auth.currentUser?.email ?? '';
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.sand,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-        title: Text('Edit profile', style: AppText.display(size: 18)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.ink),
+        title: Text('Edit profile', style: AppText.display(context: context, size: 18)),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.plum))
@@ -159,43 +130,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 90,
-                          height: 90,
-                          decoration: BoxDecoration(color: AppColors.sand, shape: BoxShape.circle, border: Border.all(color: AppColors.sandDeep)),
-                          clipBehavior: Clip.antiAlias,
-                          child: _imageFile != null
-                              ? Image.file(_imageFile!, fit: BoxFit.cover)
-                              : (_profilePicUrl != null
-                                  ? Image.network(_profilePicUrl!, fit: BoxFit.cover)
-                                  : const Icon(Icons.person_outline, size: 40, color: AppColors.muted)),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(color: AppColors.plum, shape: BoxShape.circle),
-                            child: const Icon(Icons.camera_alt, size: 14, color: AppColors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text('About you', style: AppText.display(size: 16)),
+                Text('About you', style: AppText.display(context: context, size: 16)),
                 const SizedBox(height: 14),
-                Text('Full name', style: AppText.body(size: 12.5, weight: FontWeight.w600, color: AppColors.muted)),
+                Text('Full name', style: AppText.body(context: context, size: 12.5, weight: FontWeight.w600, color: AppColors.muted)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     children: [
                       const Icon(Icons.person_outline, size: 18, color: AppColors.muted),
@@ -203,7 +144,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Expanded(
                         child: TextField(
                           controller: _name,
-                          style: AppText.body(size: 14, weight: FontWeight.w600),
+                          style: AppText.body(context: context, size: 14, weight: FontWeight.w600),
                           decoration: const InputDecoration(border: InputBorder.none, isDense: true),
                         ),
                       ),
@@ -213,12 +154,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 const SizedBox(height: 14),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     children: [
                       const Icon(Icons.mail_outline, size: 18, color: AppColors.muted),
                       const SizedBox(width: 12),
-                      Text(email, style: AppText.body(size: 14, color: AppColors.muted)),
+                      Text(email, style: AppText.body(context: context, size: 14, color: AppColors.muted)),
                     ],
                   ),
                 ),
@@ -229,7 +170,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Condition', style: AppText.display(size: 16)),
+                Text('Condition', style: AppText.display(context: context, size: 16)),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 10,
@@ -241,11 +182,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.sage.withOpacity(0.15) : AppColors.sand,
+                          color: selected ? AppColors.sage.withOpacity(0.15) : (isDark ? Colors.white10 : AppColors.sand),
                           borderRadius: BorderRadius.circular(99),
-                          border: Border.all(color: selected ? AppColors.sage : AppColors.sandDeep, width: selected ? 1.5 : 1),
+                          border: Border.all(color: selected ? AppColors.sage : (isDark ? Colors.white12 : AppColors.sandDeep), width: selected ? 1.5 : 1),
                         ),
-                        child: Text(c, style: AppText.body(size: 12.5, weight: FontWeight.w700, color: selected ? AppColors.sage : AppColors.ink)),
+                        child: Text(c, style: AppText.body(context: context, size: 12.5, weight: FontWeight.w700, color: selected ? AppColors.sage : (isDark ? Colors.white70 : AppColors.ink))),
                       ),
                     );
                   }).toList(),
@@ -257,9 +198,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('What you\'re tracking', style: AppText.display(size: 16)),
+                Text('What you\'re tracking', style: AppText.display(context: context, size: 16)),
                 const SizedBox(height: 4),
-                Text('Choose everything that matters to you.', style: AppText.body(size: 12.5, color: AppColors.muted)),
+                Text('Choose everything that matters to you.', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
                 const SizedBox(height: 14),
                 Wrap(
                   spacing: 10,
@@ -271,16 +212,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: selected ? AppColors.plum.withOpacity(0.08) : AppColors.sand,
+                          color: selected ? AppColors.plum.withOpacity(0.08) : (isDark ? Colors.white10 : AppColors.sand),
                           borderRadius: BorderRadius.circular(99),
-                          border: Border.all(color: selected ? AppColors.plum : AppColors.sandDeep, width: selected ? 1.5 : 1),
+                          border: Border.all(color: selected ? AppColors.plum : (isDark ? Colors.white12 : AppColors.sandDeep), width: selected ? 1.5 : 1),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(selected ? Icons.check_circle : Icons.circle_outlined, size: 15, color: selected ? AppColors.plum : AppColors.muted),
+                            Icon(selected ? Icons.check_circle : Icons.circle_outlined, size: 15, color: selected ? (isDark ? AppColors.sageLight : AppColors.plum) : AppColors.muted),
                             const SizedBox(width: 6),
-                            Text(goal, style: AppText.body(size: 12.5, weight: FontWeight.w600)),
+                            Text(goal, style: AppText.body(context: context, size: 12.5, weight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -294,25 +235,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Cycle settings', style: AppText.display(size: 16)),
+                Text('Cycle settings', style: AppText.display(context: context, size: 16)),
                 const SizedBox(height: 4),
-                Text('Used to calculate which cycle day you\'re on.', style: AppText.body(size: 12.5, color: AppColors.muted)),
+                Text('Used to calculate which cycle day you\'re on.', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
                 const SizedBox(height: 16),
-                Text('Last period start date', style: AppText.body(size: 13, weight: FontWeight.w600)),
+                Text('Last period start date', style: AppText.body(context: context, size: 13, weight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: _pickDate,
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: AppColors.sand, borderRadius: BorderRadius.circular(16)),
+                    decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.plum),
+                        Icon(Icons.calendar_month_outlined, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
                         const SizedBox(width: 12),
                         Text(
                           _lastPeriodDate == null ? 'Select date' : '${_lastPeriodDate!.day}/${_lastPeriodDate!.month}/${_lastPeriodDate!.year}',
-                          style: AppText.body(size: 14, weight: FontWeight.w600),
+                          style: AppText.body(context: context, size: 14, weight: FontWeight.w600),
                         ),
                         const Spacer(),
                         const Icon(Icons.chevron_right, size: 18, color: AppColors.muted),
@@ -324,12 +265,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Average cycle length', style: AppText.body(size: 13, weight: FontWeight.w600)),
-                    Text('$_cycleLength days', style: AppText.mono(size: 12)),
+                    Text('Average cycle length', style: AppText.body(context: context, size: 13, weight: FontWeight.w600)),
+                    Text('$_cycleLength days', style: AppText.mono(context: context, size: 12)),
                   ],
                 ),
                 SliderTheme(
-                  data: SliderTheme.of(context).copyWith(activeTrackColor: AppColors.plum, inactiveTrackColor: AppColors.sandDeep, thumbColor: AppColors.plum, trackHeight: 4),
+                  data: SliderTheme.of(context).copyWith(activeTrackColor: isDark ? AppColors.sage : AppColors.plum, inactiveTrackColor: isDark ? Colors.white12 : AppColors.sandDeep, thumbColor: isDark ? AppColors.sage : AppColors.plum, trackHeight: 4),
                   child: Slider(value: _cycleLength.toDouble(), min: 21, max: 45, divisions: 24, onChanged: (v) => setState(() => _cycleLength = v.round())),
                 ),
               ],
@@ -343,7 +284,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.plum, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)), elevation: 0),
               child: _saving
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
-                  : Text('Save changes', style: AppText.body(size: 14, weight: FontWeight.w600, color: AppColors.white)),
+                  : Text('Save changes', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             ),
           ),
         ],

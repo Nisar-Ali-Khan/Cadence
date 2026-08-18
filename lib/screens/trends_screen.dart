@@ -16,51 +16,53 @@ class TrendsScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        Text('Trends', style: AppText.display(size: 24)),
+        Text('Trends', style: AppText.body(context: context, size: 24)),
         const SizedBox(height: 4),
-        Text('Built from your own logged days', style: AppText.body(size: 13, color: AppColors.muted)),
+        Text('Built from your own logged days', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
         const SizedBox(height: 16),
         if (sortedDays.length < 2)
-          _buildEmptyState()
+          _buildEmptyState(context)
         else ...[
-          _buildChartCard(sortedDays),
-          _buildInsightsCard(sortedDays),
+          _buildChartCard(context, sortedDays),
+          _buildInsightsCard(context, sortedDays),
         ],
       ],
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return SectionCard(
       padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
       child: Column(
         children: [
           const Icon(Icons.show_chart, size: 38, color: AppColors.muted),
           const SizedBox(height: 12),
-          Text('Not enough logs yet', style: AppText.display(size: 16)),
+          Text('Not enough logs yet', style: AppText.display(context: context, size: 16)),
           const SizedBox(height: 6),
           Text(
             'Log at least 2 days from the Today tab and your trends will start showing up here.',
             textAlign: TextAlign.center,
-            style: AppText.body(size: 13, color: AppColors.muted),
+            style: AppText.body(context: context, size: 13, color: AppColors.muted),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildChartCard(List<int> sortedDays) {
+  Widget _buildChartCard(BuildContext context, List<int> sortedDays) {
     List<FlSpot> spotsFor(String key) => List.generate(
       sortedDays.length,
           (i) => FlSpot(i.toDouble(), dailyLogs[sortedDays[i]]![key] ?? 0),
     );
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Last ${sortedDays.length} logged day${sortedDays.length == 1 ? '' : 's'}',
-              style: AppText.body(size: 13, weight: FontWeight.w600)),
+              style: AppText.body(context: context, size: 13, weight: FontWeight.w600)),
           const SizedBox(height: 12),
           SizedBox(
             height: 200,
@@ -72,7 +74,7 @@ class TrendsScreen extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 2,
-                  getDrawingHorizontalLine: (v) => const FlLine(color: AppColors.sandDeep, strokeWidth: 1),
+                  getDrawingHorizontalLine: (v) => FlLine(color: isDark ? Colors.white12 : AppColors.sandDeep, strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
@@ -84,7 +86,7 @@ class TrendsScreen extends StatelessWidget {
                       reservedSize: 26,
                       interval: 2,
                       getTitlesWidget: (value, meta) =>
-                          Text(value.toInt().toString(), style: AppText.body(size: 10, color: AppColors.muted)),
+                          Text(value.toInt().toString(), style: AppText.body(context: context, size: 10, color: AppColors.muted)),
                     ),
                   ),
                   bottomTitles: AxisTitles(
@@ -94,7 +96,7 @@ class TrendsScreen extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         final i = value.toInt();
                         if (i < 0 || i >= sortedDays.length) return const SizedBox.shrink();
-                        return Text('D${sortedDays[i]}', style: AppText.body(size: 10, color: AppColors.muted));
+                        return Text('D${sortedDays[i]}', style: AppText.body(context: context, size: 10, color: AppColors.muted));
                       },
                     ),
                   ),
@@ -112,10 +114,10 @@ class TrendsScreen extends StatelessWidget {
           Wrap(
             spacing: 16,
             children: [
-              _legendDot('Pain', AppColors.rose),
-              _legendDot('Fatigue', AppColors.amber),
-              _legendDot('Mood', AppColors.sage),
-              _legendDot('Bloating', AppColors.plum),
+              _legendDot(context, 'Pain', AppColors.rose),
+              _legendDot(context, 'Fatigue', AppColors.amber),
+              _legendDot(context, 'Mood', AppColors.sage),
+              _legendDot(context, 'Bloating', AppColors.plum),
             ],
           ),
         ],
@@ -123,7 +125,7 @@ class TrendsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInsightsCard(List<int> sortedDays) {
+  Widget _buildInsightsCard(BuildContext context, List<int> sortedDays) {
     double avg(String key) {
       final values = sortedDays.map((d) => dailyLogs[d]![key] ?? 0).toList();
       return values.reduce((a, b) => a + b) / values.length;
@@ -173,37 +175,37 @@ class TrendsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('What stands out', style: AppText.display(size: 16)),
+          Text('What stands out', style: AppText.display(context: context, size: 16)),
           const SizedBox(height: 10),
-          _bullet('You\'ve logged ${sortedDays.length} of $cycleLength days this cycle.'),
-          _bullet('Your average ${topSymptom.key} level is ${topSymptom.value.toStringAsFixed(1)}/10 — the highest among what you track.'),
-          _bullet('Average mood across logged days: ${avgMood.toStringAsFixed(1)}/10.'),
-          if (trendNote.isNotEmpty) _bullet(trendNote),
-          if (phaseNote.isNotEmpty) _bullet(phaseNote),
+          _bullet(context, 'You\'ve logged ${sortedDays.length} of $cycleLength days this cycle.'),
+          _bullet(context, 'Your average ${topSymptom.key} level is ${topSymptom.value.toStringAsFixed(1)}/10 — the highest among what you track.'),
+          _bullet(context, 'Average mood across logged days: ${avgMood.toStringAsFixed(1)}/10.'),
+          if (trendNote.isNotEmpty) _bullet(context, trendNote),
+          if (phaseNote.isNotEmpty) _bullet(context, phaseNote),
         ],
       ),
     );
   }
 
-  Widget _legendDot(String label, Color color) {
+  Widget _legendDot(BuildContext context, String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text(label, style: AppText.body(size: 11, color: AppColors.muted)),
+        Text(label, style: AppText.body(context: context, size: 11, color: AppColors.muted)),
       ],
     );
   }
 
-  Widget _bullet(String text) {
+  Widget _bullet(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('•  ', style: AppText.body(size: 13.5)),
-          Expanded(child: Text(text, style: AppText.body(size: 13.5))),
+          Text('•  ', style: AppText.body(context: context, size: 13.5)),
+          Expanded(child: Text(text, style: AppText.body(context: context, size: 13.5))),
         ],
       ),
     );

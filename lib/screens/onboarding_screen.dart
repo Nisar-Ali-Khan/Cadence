@@ -56,9 +56,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       firstDate: DateTime(now.year - 2),
       lastDate: now,
       builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
+            colorScheme: isDark
+                ? const ColorScheme.dark(primary: AppColors.sage, onPrimary: Colors.black, surface: Color(0xFF1E1E1E), onSurface: Colors.white)
+                : const ColorScheme.light(primary: AppColors.plum, onPrimary: AppColors.white, surface: AppColors.sand, onSurface: AppColors.ink),
           ),
           child: child!,
         );
@@ -88,8 +91,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -98,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 children: [
                   if (_currentPage > 0)
-                    IconButton(onPressed: _previousPage, icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.ink))
+                    IconButton(onPressed: _previousPage, icon: Icon(Icons.arrow_back_ios_new, size: 18, color: isDark ? Colors.white : AppColors.ink))
                   else
                     const SizedBox(width: 48),
                   Expanded(
@@ -112,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           height: 5,
                           width: index == _currentPage ? 28 : 8,
                           decoration: BoxDecoration(
-                            color: index == _currentPage ? AppColors.plum : AppColors.sandDeep,
+                            color: index == _currentPage ? (isDark ? AppColors.sage : AppColors.plum) : (isDark ? Colors.white10 : AppColors.sandDeep),
                             borderRadius: BorderRadius.circular(99),
                           ),
                         ),
@@ -128,11 +132,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  _buildWelcomePage(),
-                  _buildConditionPage(),
-                  _buildGoalsPage(),
-                  _buildPeriodPage(),
-                  _buildCyclePage(),
+                  _buildWelcomePage(context),
+                  _buildConditionPage(context),
+                  _buildGoalsPage(context),
+                  _buildPeriodPage(context),
+                  _buildCyclePage(context),
                 ],
               ),
             ),
@@ -151,7 +155,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   child: Text(
                     _currentPage == _lastPage ? 'Get started' : 'Continue',
-                    style: AppText.body(size: 15, weight: FontWeight.w600, color: AppColors.white),
+                    style: AppText.body(context: context, size: 15, weight: FontWeight.w600, color: AppColors.white),
                   ),
                 ),
               ),
@@ -162,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildWelcomePage() {
+  Widget _buildWelcomePage(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(28),
       child: Column(
@@ -175,27 +179,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: const Icon(Icons.favorite_outline, size: 46, color: AppColors.plum),
           ),
           const SizedBox(height: 32),
-          Text('Let\'s personalize\nCadence for you', textAlign: TextAlign.center, style: AppText.display(size: 30)),
+          Text('Let\'s personalize\nCadence for you', textAlign: TextAlign.center, style: AppText.display(context: context, size: 30)),
           const SizedBox(height: 14),
           Text(
             'A few quick questions will help us make your tracking experience more useful.',
             textAlign: TextAlign.center,
-            style: AppText.body(size: 14, color: AppColors.muted),
+            style: AppText.body(context: context, size: 14, color: AppColors.muted),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildConditionPage() {
+  Widget _buildConditionPage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('What are you\nmanaging?', style: AppText.display(size: 28)),
+          Text('What are you\nmanaging?', style: AppText.display(context: context, size: 28)),
           const SizedBox(height: 10),
-          Text('This helps us tailor insights to you.', style: AppText.body(size: 14, color: AppColors.muted)),
+          Text('This helps us tailor insights to you.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
           const SizedBox(height: 28),
           ..._conditions.map((c) {
             final name = c['name'] as String;
@@ -207,15 +212,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.plum.withOpacity(0.08) : AppColors.white,
+                  color: selected ? AppColors.plum.withOpacity(0.08) : (isDark ? Colors.white10 : AppColors.white),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: selected ? AppColors.plum : AppColors.sandDeep, width: selected ? 1.5 : 1),
+                  border: Border.all(color: selected ? AppColors.plum : (isDark ? Colors.white24 : AppColors.sandDeep), width: selected ? 1.5 : 1),
                 ),
                 child: Row(
                   children: [
                     Icon(icon, size: 20, color: selected ? AppColors.plum : AppColors.muted),
                     const SizedBox(width: 14),
-                    Expanded(child: Text(name, style: AppText.body(size: 15, weight: FontWeight.w600))),
+                    Expanded(child: Text(name, style: AppText.body(context: context, size: 15, weight: FontWeight.w600))),
                     Icon(selected ? Icons.check_circle : Icons.circle_outlined, size: 20, color: selected ? AppColors.plum : AppColors.muted),
                   ],
                 ),
@@ -227,15 +232,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildGoalsPage() {
+  Widget _buildGoalsPage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('What would you like\nto track?', style: AppText.display(size: 28)),
+          Text('What would you like\nto track?', style: AppText.display(context: context, size: 28)),
           const SizedBox(height: 10),
-          Text('Choose everything that matters to you.', style: AppText.body(size: 14, color: AppColors.muted)),
+          Text('Choose everything that matters to you.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
           const SizedBox(height: 28),
           ..._goals.map((goal) {
             final selected = _trackingGoals.contains(goal);
@@ -245,15 +251,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.plum.withOpacity(0.08) : AppColors.white,
+                  color: selected ? AppColors.plum.withOpacity(0.08) : (isDark ? Colors.white10 : AppColors.white),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: selected ? AppColors.plum : AppColors.sandDeep, width: selected ? 1.5 : 1),
+                  border: Border.all(color: selected ? AppColors.plum : (isDark ? Colors.white24 : AppColors.sandDeep), width: selected ? 1.5 : 1),
                 ),
                 child: Row(
                   children: [
                     Icon(selected ? Icons.check_circle : Icons.circle_outlined, color: selected ? AppColors.plum : AppColors.muted),
                     const SizedBox(width: 14),
-                    Expanded(child: Text(goal, style: AppText.body(size: 15, weight: FontWeight.w600))),
+                    Expanded(child: Text(goal, style: AppText.body(context: context, size: 15, weight: FontWeight.w600))),
                   ],
                 ),
               ),
@@ -264,22 +270,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPeriodPage() {
+  Widget _buildPeriodPage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('When was your\nlast period?', style: AppText.display(size: 28)),
+          Text('When was your\nlast period?', style: AppText.display(context: context, size: 28)),
           const SizedBox(height: 10),
-          Text('This helps Cadence understand your cycle.', style: AppText.body(size: 14, color: AppColors.muted)),
+          Text('This helps Cadence understand your cycle.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
           const SizedBox(height: 36),
           GestureDetector(
             onTap: _selectPeriodDate,
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: AppColors.sandDeep)),
+              decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: isDark ? Colors.white24 : AppColors.sandDeep)),
               child: Row(
                 children: [
                   Container(
@@ -291,7 +298,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Expanded(
                     child: Text(
                       _lastPeriodDate == null ? 'Select date' : '${_lastPeriodDate!.day}/${_lastPeriodDate!.month}/${_lastPeriodDate!.year}',
-                      style: AppText.body(size: 15, weight: FontWeight.w600),
+                      style: AppText.body(context: context, size: 15, weight: FontWeight.w600),
                     ),
                   ),
                   const Icon(Icons.chevron_right, color: AppColors.muted),
@@ -304,21 +311,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildCyclePage() {
+  Widget _buildCyclePage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tell us about\nyour cycle', style: AppText.display(size: 28)),
+          Text('Tell us about\nyour cycle', style: AppText.display(context: context, size: 28)),
           const SizedBox(height: 10),
-          Text('You can change these settings later.', style: AppText.body(size: 14, color: AppColors.muted)),
+          Text('You can change these settings later.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
           const SizedBox(height: 32),
-          Text('Average cycle length', style: AppText.body(size: 14, weight: FontWeight.w600)),
+          Text('Average cycle length', style: AppText.body(context: context, size: 14, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-            decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(18)),
+            decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(18)),
             child: Row(
               children: [
                 Expanded(
@@ -331,16 +339,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onChanged: (value) => setState(() => _cycleLength = value.round()),
                   ),
                 ),
-                SizedBox(width: 55, child: Text('$_cycleLength days', style: AppText.body(size: 13, weight: FontWeight.w600))),
+                SizedBox(width: 55, child: Text('$_cycleLength days', style: AppText.body(context: context, size: 13, weight: FontWeight.w600))),
               ],
             ),
           ),
           const SizedBox(height: 28),
-          Text('Typical period length', style: AppText.body(size: 14, weight: FontWeight.w600)),
+          Text('Typical period length', style: AppText.body(context: context, size: 14, weight: FontWeight.w600)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
-            decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(18)),
+            decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(18)),
             child: Row(
               children: [
                 Expanded(
@@ -353,7 +361,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onChanged: (value) => setState(() => _periodLength = value.round()),
                   ),
                 ),
-                SizedBox(width: 55, child: Text('$_periodLength days', style: AppText.body(size: 13, weight: FontWeight.w600))),
+                SizedBox(width: 55, child: Text('$_periodLength days', style: AppText.body(context: context, size: 13, weight: FontWeight.w600))),
               ],
             ),
           ),
@@ -361,7 +369,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             'Your information stays private and is used to personalize your tracking experience.',
             textAlign: TextAlign.center,
-            style: AppText.body(size: 11.5, color: AppColors.muted),
+            style: AppText.body(context: context, size: 11.5, color: AppColors.muted),
           ),
         ],
       ),

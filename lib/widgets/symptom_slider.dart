@@ -23,6 +23,7 @@ class SymptomSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -35,16 +36,16 @@ class SymptomSlider extends StatelessWidget {
                 children: [
                   Icon(icon, size: 16, color: accent),
                   const SizedBox(width: 8),
-                  Text(label, style: AppText.body(size: 13.5, weight: FontWeight.w600)),
+                  Text(label, style: AppText.body(context: context, size: 13.5, weight: FontWeight.w600)),
                 ],
               ),
-              Text('${value.round()}/10', style: AppText.mono(size: 12)),
+              Text('${value.round()}/10', style: AppText.mono(context: context, size: 12)),
             ],
           ),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: accent,
-              inactiveTrackColor: AppColors.sandDeep,
+              inactiveTrackColor: isDark ? Colors.white12 : AppColors.sandDeep,
               thumbColor: accent,
               overlayColor: accent.withOpacity(0.15),
               trackHeight: 4,
@@ -61,8 +62,8 @@ class SymptomSlider extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(lowLabel, style: AppText.body(size: 11, color: AppColors.muted)),
-              Text(highLabel, style: AppText.body(size: 11, color: AppColors.muted)),
+              Text(lowLabel, style: AppText.body(context: context, size: 11, color: AppColors.muted)),
+              Text(highLabel, style: AppText.body(context: context, size: 11, color: AppColors.muted)),
             ],
           ),
         ],

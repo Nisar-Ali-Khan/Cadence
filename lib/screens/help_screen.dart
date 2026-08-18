@@ -15,13 +15,14 @@ class HelpScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.sand,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: AppColors.sand,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.ink),
-        title: Text('Help & FAQ', style: AppText.display(size: 18)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : AppColors.ink),
+        title: Text('Help & FAQ', style: AppText.display(context: context, size: 18)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -30,9 +31,9 @@ class HelpScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(f[0], style: AppText.body(size: 14, weight: FontWeight.w700)),
+              Text(f[0], style: AppText.body(context: context, size: 14, weight: FontWeight.w700)),
               const SizedBox(height: 6),
-              Text(f[1], style: AppText.body(size: 13, color: AppColors.muted).copyWith(height: 1.5)),
+              Text(f[1], style: AppText.body(context: context, size: 13, color: AppColors.muted).copyWith(height: 1.5)),
             ],
           ),
         ))
