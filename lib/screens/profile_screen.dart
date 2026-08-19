@@ -12,6 +12,7 @@ import '../services/notification_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../widgets/section_card.dart';
 import 'edit_profile_screen.dart';
+import 'login_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'terms_screen.dart';
 import 'help_screen.dart';
@@ -251,7 +252,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
-    if (confirmed == true) await AuthService().signOut();
+    if (confirmed == true) {
+      if (AuthService().currentUser == null) {
+        // Guest logout: just go back to Login
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      } else {
+        await AuthService().signOut();
+      }
+    }
   }
 
   Future<void> _confirmDeleteAccount(BuildContext context) async {

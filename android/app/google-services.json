@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "492077834729-jl598ge8ifepmrki3scdtbk1k7l6qp7l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.cadence.pcos",
+            "certificate_hash": "593bc4cc063965df7921da961d59101fa62bf66f"
+          }
+        },
+        {
           "client_id": "492077834729-ekd9gdshjv5avo90ug11dipli1oi1im2.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +37,13 @@
             {
               "client_id": "492077834729-ekd9gdshjv5avo90ug11dipli1oi1im2.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "492077834729-hkh27egm7qdnh261774mltc9ask8rba4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.cadence"
+              }
             }
           ]
         }

@@ -70,7 +70,8 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
       }
       final didAuthenticate = await _localAuth.authenticate(
         localizedReason: 'Unlock Cadence to view your health data',
-        options: const AuthenticationOptions(biometricOnly: false, stickyAuth: true),
+        biometricOnly: false,
+        persistAcrossBackgrounding: true,
       );
       if (!mounted) return;
       setState(() => _unlocked = didAuthenticate);

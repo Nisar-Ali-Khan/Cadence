@@ -9,7 +9,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   static const int medicationId = 1001;
@@ -19,33 +19,18 @@ class NotificationService {
     if (_initialized) return;
     
     try {
-      // 1. Initialize timezone data
       tzdata.initializeTimeZones();
       
-      // 2. Attempt to get device timezone with extreme safety
-      String timeZoneName = 'UTC'; // Default fallback
+      String timeZoneName = 'UTC';
       try {
-        final dynamic res = await FlutterTimezone.getLocalTimezone();
-        if (res is String) {
-          timeZoneName = res;
-        } else {
-          // If it's a TimezoneInfo object, try to get the name
-          timeZoneName = res.toString();
-        }
-        
-        // Validate if the location exists in the database
-        try {
-          tz.setLocalLocation(tz.getLocation(timeZoneName));
-        } catch (e) {
-          debugPrint('Location $timeZoneName not found, using UTC');
-          tz.setLocalLocation(tz.getLocation('UTC'));
-        }
+        final res = await FlutterTimezone.getLocalTimezone();
+        timeZoneName = res.identifier;
+        tz.setLocalLocation(tz.getLocation(timeZoneName));
       } catch (e) {
         debugPrint('Timezone detection failed: $e');
         tz.setLocalLocation(tz.getLocation('UTC'));
       }
 
-      // 3. Setup Notification Plugin
       const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
       const iosSettings = DarwinInitializationSettings(
         requestAlertPermission: true,
@@ -54,9 +39,11 @@ class NotificationService {
       );
       
       const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
-      await _plugin.initialize(settings);
+      
+      await _plugin.initialize(
+        settings: settings,
+      );
 
-      // 4. Request permissions (Android 13+)
       if (defaultTargetPlatform == TargetPlatform.android) {
         final androidImpl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
         await androidImpl?.requestNotificationsPermission();
@@ -66,8 +53,6 @@ class NotificationService {
       _initialized = true;
     } catch (e) {
       debugPrint('NotificationService critical init error: $e');
-      // Prevent crash by marking as "initialized" even if failed, or just let it be.
-      // The main goal is to NOT throw an exception back to main().
     }
   }
 
@@ -79,7 +64,6 @@ class NotificationService {
     required int minute,
   }) async {
     if (!_initialized) await init();
-    if (!_initialized) return; // Still not init? Exit.
 
     try {
       final now = tz.TZDateTime.now(tz.local);
@@ -90,11 +74,11 @@ class NotificationService {
       }
 
       await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduled,
-        const NotificationDetails(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduled,
+        notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
             'cadence_reminders',
             'Cadence reminders',
@@ -104,7 +88,6 @@ class NotificationService {
           ),
           iOS: DarwinNotificationDetails(),
         ),
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
       );
@@ -116,7 +99,7 @@ class NotificationService {
   Future<void> cancel(int id) async {
     if (!_initialized) await init();
     try {
-      await _plugin.cancel(id);
+      await _plugin.cancel(id: id);
     } catch (_) {}
   }
   
