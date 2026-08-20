@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           
                           Center(
                             child: SizedBox(
-                              width: size.width * 0.5,
+                              width: size.width * 0.6,
                               height: 56,
                               child: OutlinedButton(
                                 onPressed: (_loading || _googleLoading) ? null : _googleLogin,
@@ -241,9 +241,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.plum))
                                   : Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.g_mobiledata_rounded, size: 32, color: Colors.red),
-                                        const SizedBox(width: 8),
+                                        SizedBox(
+                                          width: 22,
+                                          height: 22,
+                                          child: Image.network(
+                                            'https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png',
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (context, error, stackTrace) => 
+                                              const Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 24),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
                                         Text('Google', style: AppText.body(context: context, size: 15, weight: FontWeight.w600)),
                                       ],
                                     ),
