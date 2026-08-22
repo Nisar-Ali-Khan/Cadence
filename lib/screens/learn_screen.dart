@@ -2,21 +2,84 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
-class LearnScreen extends StatelessWidget {
+class LearnScreen extends StatefulWidget {
   final String condition;
   const LearnScreen({super.key, required this.condition});
 
   @override
+  State<LearnScreen> createState() => _LearnScreenState();
+}
+
+class _LearnScreenState extends State<LearnScreen> {
+  late String _selectedCondition;
+  final List<String> _allConditions = ['PCOS', 'Endometriosis', 'Fibromyalgia', 'Autoimmune condition'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCondition = widget.condition;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Learn', style: AppText.display(context: context, size: 24)),
-        const SizedBox(height: 4),
-        Text('Bite-sized tips for $condition management', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
-        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+          child: Text('Learn', style: AppText.display(context: context, size: 24)),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Text('Bite-sized tips for health management', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
+        ),
         
-        ..._buildTipsFor(context, condition),
+        // Horizontal Sidebar/Selector
+        SizedBox(
+          height: 40,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: _allConditions.length,
+            itemBuilder: (context, index) {
+              final c = _allConditions[index];
+              final selected = _selectedCondition == c;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedCondition = c),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.plum : (isDark ? Colors.white10 : AppColors.white),
+                    borderRadius: BorderRadius.circular(99),
+                    border: Border.all(color: selected ? AppColors.plum : (isDark ? Colors.white12 : AppColors.sandDeep)),
+                  ),
+                  child: Center(
+                    child: Text(
+                      c,
+                      style: AppText.body(
+                        context: context,
+                        size: 12,
+                        weight: selected ? FontWeight.w700 : FontWeight.w600,
+                        color: selected ? Colors.white : (isDark ? Colors.white70 : AppColors.ink),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
+        
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            children: _buildTipsFor(context, _selectedCondition),
+          ),
+        ),
       ],
     );
   }
