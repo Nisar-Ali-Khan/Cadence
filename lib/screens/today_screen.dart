@@ -520,37 +520,41 @@ class TodayScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Rescue Toolkit', style: AppText.display(context: context, size: 20)),
-            const SizedBox(height: 4),
-            Text('Actionable tips for your $title', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
-            const SizedBox(height: 20),
-            ...tips.map((tip) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline, size: 18, color: AppColors.sage),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(tip, style: AppText.body(context: context, size: 14))),
-                ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Rescue Toolkit', style: AppText.display(context: context, size: 20)),
+              const SizedBox(height: 4),
+              Text('Actionable tips for your $title', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
+              const SizedBox(height: 20),
+              ...tips.map((tip) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, size: 18, color: AppColors.sage),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(tip, style: AppText.body(context: context, size: 14))),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Got it', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.plum))),
               ),
-            )),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Got it', style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: AppColors.plum))),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

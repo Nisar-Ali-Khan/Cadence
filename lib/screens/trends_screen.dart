@@ -5,25 +5,39 @@ import '../widgets/section_card.dart';
 
 class TrendsScreen extends StatelessWidget {
   final Map<int, Map<String, double>> dailyLogs;
+  final Map<int, double> weightLog;
+  final String weightUnit;
   final int cycleLength;
 
-  const TrendsScreen({super.key, required this.dailyLogs, required this.cycleLength});
+  const TrendsScreen({
+    super.key,
+    required this.dailyLogs,
+    required this.weightLog,
+    required this.weightUnit,
+    required this.cycleLength,
+  });
 
   @override
   Widget build(BuildContext context) {
     final sortedDays = dailyLogs.keys.toList()..sort();
+    final weightDays = weightLog.keys.toList()..sort();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        Text('Trends', style: AppText.body(context: context, size: 24)),
+        Text('Trends', style: AppText.body(context: context, size: 24, weight: FontWeight.w600)),
         const SizedBox(height: 4),
-        Text('Built from your own logged days', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
+        Text('Built from your own logged data', style: AppText.body(context: context, size: 13, color: AppColors.muted)),
         const SizedBox(height: 16),
+        
         if (sortedDays.length < 2)
           _buildEmptyState(context)
         else ...[
           _buildChartCard(context, sortedDays),
+          if (weightDays.length >= 2) ...[
+            const SizedBox(height: 16),
+            _buildWeightChartCard(context, weightDays),
+          ],
           _buildInsightsCard(context, sortedDays),
         ],
       ],
@@ -52,7 +66,7 @@ class TrendsScreen extends StatelessWidget {
   Widget _buildChartCard(BuildContext context, List<int> sortedDays) {
     List<FlSpot> spotsFor(String key) => List.generate(
       sortedDays.length,
-          (i) => FlSpot(i.toDouble(), dailyLogs[sortedDays[i]]![key] ?? 0),
+      (i) => FlSpot(i.toDouble(), dailyLogs[sortedDays[i]]![key] ?? 0),
     );
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -61,9 +75,10 @@ class TrendsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Last ${sortedDays.length} logged day${sortedDays.length == 1 ? '' : 's'}',
-              style: AppText.body(context: context, size: 13, weight: FontWeight.w600)),
-          const SizedBox(height: 12),
+          Text('Symptom intensity', style: AppText.body(context: context, size: 14, weight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Last ${sortedDays.length} logged days', style: AppText.body(context: context, size: 11, color: AppColors.muted)),
+          const SizedBox(height: 20),
           SizedBox(
             height: 200,
             child: LineChart(
@@ -74,7 +89,7 @@ class TrendsScreen extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 2,
-                  getDrawingHorizontalLine: (v) => FlLine(color: isDark ? Colors.white12 : AppColors.sandDeep, strokeWidth: 1),
+                  getDrawingHorizontalLine: (v) => FlLine(color: isDark ? Colors.white10 : AppColors.sandDeep, strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
@@ -110,15 +125,94 @@ class TrendsScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Wrap(
             spacing: 16,
+            runSpacing: 8,
             children: [
               _legendDot(context, 'Pain', AppColors.rose),
               _legendDot(context, 'Fatigue', AppColors.amber),
               _legendDot(context, 'Mood', AppColors.sage),
               _legendDot(context, 'Bloating', AppColors.plum),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeightChartCard(BuildContext context, List<int> weightDays) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    double convert(double kg) => weightUnit == 'kg' ? kg : kg * 2.20462;
+    
+    final spots = List.generate(
+      weightDays.length,
+      (i) => FlSpot(i.toDouble(), convert(weightLog[weightDays[i]]!)),
+    );
+
+    final values = weightDays.map((d) => convert(weightLog[d]!)).toList();
+    final minW = (values.reduce((a, b) => a < b ? a : b) - 2).floorToDouble();
+    final maxW = (values.reduce((a, b) => a > b ? a : b) + 2).ceilToDouble();
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Weight progress ($weightUnit)', style: AppText.body(context: context, size: 14, weight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text('Based on your latest ${weightDays.length} readings', style: AppText.body(context: context, size: 11, color: AppColors.muted)),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 160,
+            child: LineChart(
+              LineChartData(
+                minY: minW,
+                maxY: maxW,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (v) => FlLine(color: isDark ? Colors.white10 : AppColors.sandDeep, strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                titlesData: FlTitlesData(
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 35,
+                      getTitlesWidget: (value, meta) =>
+                          Text(value.toInt().toString(), style: AppText.body(context: context, size: 10, color: AppColors.muted)),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= weightDays.length) return const SizedBox.shrink();
+                        return Text('D${weightDays[i]}', style: AppText.body(context: context, size: 10, color: AppColors.muted));
+                      },
+                    ),
+                  ),
+                ),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    color: AppColors.sage,
+                    barWidth: 3,
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: AppColors.sage.withOpacity(0.1),
+                    ),
+                    dotData: const FlDotData(show: true),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -143,34 +237,6 @@ class TrendsScreen extends StatelessWidget {
     ]..sort((a, b) => b.value.compareTo(a.value));
     final topSymptom = ranked.first;
 
-    String trendNote = '';
-    String phaseNote = '';
-    
-    if (sortedDays.length >= 4) {
-      final half = sortedDays.length ~/ 2;
-      final earlyDays = sortedDays.sublist(0, half);
-      final laterDays = sortedDays.sublist(half);
-      final earlyPain = earlyDays.map((d) => dailyLogs[d]!['pain'] ?? 0).reduce((a, b) => a + b) / earlyDays.length;
-      final laterPain = laterDays.map((d) => dailyLogs[d]!['pain'] ?? 0).reduce((a, b) => a + b) / laterDays.length;
-
-      if (laterPain - earlyPain >= 1.5) {
-        trendNote = 'Pain has been trending upward across your logged days this cycle.';
-      } else if (earlyPain - laterPain >= 1.5) {
-        trendNote = 'Pain has eased compared to earlier in this cycle.';
-      } else {
-        trendNote = 'Pain has stayed fairly steady across your logged days.';
-      }
-      
-      // Phase-based estimation (assuming 28-day cycle, day 14 is ovulation)
-      final lutealLogs = sortedDays.where((d) => d > 14).toList();
-      if (lutealLogs.isNotEmpty) {
-        final lutealMood = lutealLogs.map((d) => dailyLogs[d]!['mood'] ?? 0).reduce((a, b) => a + b) / lutealLogs.length;
-        if (lutealMood < 4) {
-          phaseNote = 'Your mood logs tend to be lower during your luteal phase (after day 14).';
-        }
-      }
-    }
-
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -178,10 +244,8 @@ class TrendsScreen extends StatelessWidget {
           Text('What stands out', style: AppText.display(context: context, size: 16)),
           const SizedBox(height: 10),
           _bullet(context, 'You\'ve logged ${sortedDays.length} of $cycleLength days this cycle.'),
-          _bullet(context, 'Your average ${topSymptom.key} level is ${topSymptom.value.toStringAsFixed(1)}/10 — the highest among what you track.'),
+          _bullet(context, 'Your average ${topSymptom.key} level is ${topSymptom.value.toStringAsFixed(1)}/10.'),
           _bullet(context, 'Average mood across logged days: ${avgMood.toStringAsFixed(1)}/10.'),
-          if (trendNote.isNotEmpty) _bullet(context, trendNote),
-          if (phaseNote.isNotEmpty) _bullet(context, phaseNote),
         ],
       ),
     );

@@ -622,71 +622,74 @@ class _ManageMedsSheetState extends State<_ManageMedsSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8),
       padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Your Medications', style: AppText.display(context: context, size: 20)),
-          const SizedBox(height: 16),
-          if (_meds.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Text('No medications added yet.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
-            ),
-          ..._meds.map((m) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Your Medications', style: AppText.display(context: context, size: 20)),
+            const SizedBox(height: 16),
+            if (_meds.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Text('No medications added yet.', style: AppText.body(context: context, size: 14, color: AppColors.muted)),
+              ),
+            ..._meds.map((m) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Expanded(child: Text(m, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
+                  IconButton(onPressed: () => setState(() => _meds.remove(m)), icon: const Icon(Icons.remove_circle_outline, color: AppColors.rose, size: 20)),
+                ],
+              ),
+            )),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Expanded(child: Text(m, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
-                IconButton(onPressed: () => setState(() => _meds.remove(m)), icon: const Icon(Icons.remove_circle_outline, color: AppColors.rose, size: 20)),
-              ],
-            ),
-          )),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(hintText: 'Add new med...', border: InputBorder.none, isDense: true),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(16)),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(hintText: 'Add new med...', border: InputBorder.none, isDense: true),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              IconButton(
-                onPressed: () {
-                  if (_controller.text.trim().isNotEmpty) {
-                    setState(() {
-                      _meds.add(_controller.text.trim());
-                      _controller.clear();
-                    });
-                  }
-                },
-                icon: Icon(Icons.add_circle, color: isDark ? AppColors.sageLight : AppColors.plum, size: 28),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                widget.onSave(_meds);
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.plum, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99))),
-              child: Text('Save list', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () {
+                    if (_controller.text.trim().isNotEmpty) {
+                      setState(() {
+                        _meds.add(_controller.text.trim());
+                        _controller.clear();
+                      });
+                    }
+                  },
+                  icon: Icon(Icons.add_circle, color: isDark ? AppColors.sageLight : AppColors.plum, size: 28),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  widget.onSave(_meds);
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.plum, padding: const EdgeInsets.symmetric(vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99))),
+                child: Text('Save list', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

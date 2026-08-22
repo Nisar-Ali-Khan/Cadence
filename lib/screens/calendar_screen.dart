@@ -47,12 +47,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       builder: (ctx) => _DayEditSheet(
         day: day,
         isFuture: day > widget.currentDay,
-        initial: existing ?? {'pain': 3, 'fatigue': 3, 'mood': 5, 'bloating': 3},
+        initial: existing ?? {'pain': 3, 'fatigue': 3, 'mood': 5, 'bloating': 3, 'acne': 1, 'sleep': 7},
       ),
     );
 
     if (result != null) {
-      final severity = (result['pain']! + result['fatigue']! + (10 - result['mood']!) + result['bloating']!) / 4;
+      final severity = (result['pain']! + result['fatigue']! + (10 - result['mood']!) + result['bloating']! + (result['acne'] ?? 1) + (10 - (result['sleep'] ?? 7))) / 6;
       setState(() {
         _dailyLogs[day] = result;
         final idx = (day - 1).clamp(0, _cycleData.length - 1);
@@ -79,14 +79,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Tap any past or current day to view or update its log.', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Expanded(
               child: GridView.builder(
                 itemCount: widget.cycleLength,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 7,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
                 ),
                 itemBuilder: (context, index) {
                   final day = index + 1;
@@ -94,6 +94,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   final severity = (day - 1) < _cycleData.length ? _cycleData[day - 1] : 0.0;
                   final isToday = day == widget.currentDay;
                   final isFuture = day > widget.currentDay;
+                  
+                  // Indicators
+                  final bool isPeriodDay = day <= 5; // Simplified prediction
+                  final bool isHighFlare = hasLog && severity >= 6;
 
                   return GestureDetector(
                     onTap: isFuture ? null : () => _openDay(day),
@@ -102,34 +106,65 @@ class _CalendarScreenState extends State<CalendarScreen> {
                         color: hasLog
                             ? _colorFor(severity)
                             : (isFuture ? (isDark ? Colors.white10 : AppColors.sandDeep.withOpacity(0.5)) : (isDark ? Colors.white12 : AppColors.white)),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                         border: isToday ? Border.all(color: AppColors.amber, width: 2) : null,
+                        boxShadow: hasLog ? null : [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 4, offset: const Offset(0, 2))],
                       ),
-                      child: Center(
-                        child: Text(
-                          '$day',
-                          style: AppText.body(context: context,
-                            size: 12.5,
-                            weight: FontWeight.w700,
-                            color: hasLog ? AppColors.white : (isFuture ? AppColors.muted : (isDark ? Colors.white : AppColors.ink)),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Text(
+                            '$day',
+                            style: AppText.body(context: context,
+                              size: 13,
+                              weight: FontWeight.w700,
+                              color: hasLog ? AppColors.white : (isFuture ? AppColors.muted : (isDark ? Colors.white : AppColors.ink)),
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            bottom: 6,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isPeriodDay)
+                                  Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.rose, shape: BoxShape.circle)),
+                                if (isPeriodDay && isHighFlare) const SizedBox(width: 2),
+                                if (isHighFlare)
+                                  Container(width: 4, height: 4, decoration: const BoxDecoration(color: AppColors.amber, shape: BoxShape.circle)),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
                 },
               ),
             ),
-            const SizedBox(height: 14),
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              children: [
-                _legendDot(context, 'Not logged', isDark ? Colors.white12 : AppColors.white, bordered: !isDark),
-                _legendDot(context, 'Logged (low)', AppColors.sageLight),
-                _legendDot(context, 'Logged (high)', AppColors.rose),
-                _legendDot(context, 'Upcoming', isDark ? Colors.white10 : AppColors.sandDeep),
-              ],
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withOpacity(0.05) : AppColors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Indicators', style: AppText.body(context: context, size: 12, weight: FontWeight.w700, color: AppColors.muted)),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 10,
+                    children: [
+                      _legendItem(context, 'Period', AppColors.rose),
+                      _legendItem(context, 'High Flare', AppColors.amber),
+                      _legendItem(context, 'Logged (low)', AppColors.sageLight),
+                      _legendItem(context, 'Logged (high)', AppColors.rose, isBox: true),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -137,17 +172,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _legendDot(BuildContext context, String label, Color color, {bool bordered = false}) {
+  Widget _legendItem(BuildContext context, String label, Color color, {bool isBox = false}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12,
-          height: 12,
+          width: 8,
+          height: 8,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(4),
-            border: bordered ? Border.all(color: AppColors.sandDeep) : null,
+            shape: isBox ? BoxShape.rectangle : BoxShape.circle,
+            borderRadius: isBox ? BorderRadius.circular(2) : null,
           ),
         ),
         const SizedBox(width: 6),
@@ -181,67 +216,56 @@ class _DayEditSheetState extends State<_DayEditSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
       padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
+        left: 24,
+        right: 24,
         top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : AppColors.sand,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(color: isDark ? Colors.white12 : AppColors.sandDeep, borderRadius: BorderRadius.circular(99)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text('Day ${widget.day}', style: AppText.display(context: context, size: 20)),
-          const SizedBox(height: 4),
-          Text('View or update this day\'s log', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
-          const SizedBox(height: 16),
-          SymptomSlider(
-            label: 'Pain', icon: Icons.bolt, accent: AppColors.rose,
-            value: _values['pain'] ?? 0, lowLabel: 'None', highLabel: 'Severe',
-            onChanged: (v) => setState(() => _values['pain'] = v),
-          ),
-          SymptomSlider(
-            label: 'Fatigue', icon: Icons.bedtime_outlined, accent: AppColors.amber,
-            value: _values['fatigue'] ?? 0, lowLabel: 'Rested', highLabel: 'Exhausted',
-            onChanged: (v) => setState(() => _values['fatigue'] = v),
-          ),
-          SymptomSlider(
-            label: 'Mood', icon: Icons.sentiment_satisfied_alt, accent: AppColors.sage,
-            value: _values['mood'] ?? 0, lowLabel: 'Low', highLabel: 'Great',
-            onChanged: (v) => setState(() => _values['mood'] = v),
-          ),
-          SymptomSlider(
-            label: 'Bloating', icon: Icons.water_drop_outlined, accent: AppColors.plum,
-            value: _values['bloating'] ?? 0, lowLabel: 'None', highLabel: 'Severe',
-            onChanged: (v) => setState(() => _values['bloating'] = v),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(_values),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.plum,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(color: isDark ? Colors.white12 : AppColors.sandDeep, borderRadius: BorderRadius.circular(99)),
               ),
-              child: Text('Save', style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: AppColors.white)),
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            Text('Day ${widget.day} Log', style: AppText.display(context: context, size: 20)),
+            const SizedBox(height: 4),
+            Text('View or update this day\'s log', style: AppText.body(context: context, size: 12.5, color: AppColors.muted)),
+            const SizedBox(height: 16),
+            SymptomSlider(label: 'Pain', icon: Icons.bolt, accent: AppColors.rose, value: _values['pain'] ?? 0, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => setState(() => _values['pain'] = v)),
+            SymptomSlider(label: 'Fatigue', icon: Icons.bedtime_outlined, accent: AppColors.amber, value: _values['fatigue'] ?? 0, lowLabel: 'Rested', highLabel: 'Exh.', onChanged: (v) => setState(() => _values['fatigue'] = v)),
+            SymptomSlider(label: 'Mood', icon: Icons.sentiment_satisfied_alt, accent: AppColors.sage, value: _values['mood'] ?? 0, lowLabel: 'Low', highLabel: 'Great', onChanged: (v) => setState(() => _values['mood'] = v)),
+            SymptomSlider(label: 'Bloating', icon: Icons.water_drop_outlined, accent: AppColors.plum, value: _values['bloating'] ?? 0, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => setState(() => _values['bloating'] = v)),
+            SymptomSlider(label: 'Acne', icon: Icons.face, accent: AppColors.rose, value: _values['acne'] ?? 1, lowLabel: 'Clear', highLabel: 'Severe', onChanged: (v) => setState(() => _values['acne'] = v)),
+            SymptomSlider(label: 'Sleep', icon: Icons.king_bed_outlined, accent: AppColors.sage, value: _values['sleep'] ?? 7, lowLabel: 'Poor', highLabel: 'Great', onChanged: (v) => setState(() => _values['sleep'] = v)),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(_values),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.plum,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                  elevation: 0,
+                ),
+                child: Text('Update Logs', style: AppText.body(context: context, size: 15, weight: FontWeight.w700, color: AppColors.white)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

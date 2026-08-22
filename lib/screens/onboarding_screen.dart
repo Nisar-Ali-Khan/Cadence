@@ -167,11 +167,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildWelcomePage(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: 60),
           Container(
             width: 100,
             height: 100,
@@ -193,7 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildConditionPage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildGoalsPage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +273,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildPeriodPage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +314,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildCyclePage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(28, 30, 28, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,7 +366,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 40),
           Text(
             'Your information stays private and is used to personalize your tracking experience.',
             textAlign: TextAlign.center,

@@ -14,6 +14,7 @@ class NotificationService {
 
   static const int medicationId = 1001;
   static const int dailyLogId = 1002;
+  static const int periodReminderId = 1003;
 
   Future<void> init() async {
     if (_initialized) return;
@@ -94,6 +95,36 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error scheduling notification: $e');
     }
+  }
+
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime date,
+  }) async {
+    await init();
+    
+    final scheduled = tz.TZDateTime.from(date, tz.local);
+    if (scheduled.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'cadence_alerts',
+          'Cadence alerts',
+          channelDescription: 'Important cycle and health alerts',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
   }
 
   Future<void> cancel(int id) async {

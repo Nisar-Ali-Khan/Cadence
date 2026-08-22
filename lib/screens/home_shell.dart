@@ -12,6 +12,7 @@ import 'trends_screen.dart';
 import 'reports_screen.dart';
 import 'profile_screen.dart';
 import 'learn_screen.dart';
+import '../services/notification_service.dart';
 import '../main.dart';
 
 class HomeShell extends StatefulWidget {
@@ -236,6 +237,22 @@ class _HomeShellState extends State<HomeShell> {
 
     final loggedFlag = await _storage.loadLoggedFlag(currentDay);
     if (mounted) setState(() => logged = loggedFlag);
+    
+    _schedulePeriodAlert();
+  }
+
+  void _schedulePeriodAlert() {
+    final nextPeriod = cycleStartDate.add(Duration(days: cycleLength));
+    final alertDate = nextPeriod.subtract(const Duration(days: 2));
+    // Set to 9 AM on the alert day
+    final scheduledTime = DateTime(alertDate.year, alertDate.month, alertDate.day, 9, 0);
+    
+    NotificationService().scheduleOnce(
+      id: NotificationService.periodReminderId,
+      title: 'Preparation alert',
+      body: 'Your period is predicted to start in 2 days.',
+      date: scheduledTime,
+    );
   }
 
   Future<void> _syncToCloud({Map<String, List<int>>? reminderTimes}) async {
@@ -397,7 +414,7 @@ class _HomeShellState extends State<HomeShell> {
         onToggleMedication: toggleMedication,
         onUpdateWater: updateWater,
       ),
-      TrendsScreen(dailyLogs: dailyLogs, cycleLength: cycleLength),
+      TrendsScreen(dailyLogs: dailyLogs, cycleLength: cycleLength, weightLog: weightLog, weightUnit: weightUnit),
       LearnScreen(condition: condition),
       ReportsScreen(reports: reports, dailyLogs: dailyLogs, cycleLength: cycleLength, onGenerate: generateReport),
       ProfileScreen(
