@@ -23,6 +23,8 @@ class CloudSyncService {
     required Map<int, int> waterLog,
     required List<String> medicationNames,
     required String themeMode,
+    int? accentColor,
+    List<DateTime>? periodHistory,
   }) async {
     try {
       await _doc.set({
@@ -41,6 +43,8 @@ class CloudSyncService {
         'waterLog': waterLog.map((k, v) => MapEntry(k.toString(), v)),
         'medicationNames': medicationNames,
         'themeMode': themeMode,
+        'accentColor': accentColor,
+        'periodHistory': periodHistory?.map((d) => d.toIso8601String()).toList(),
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (_) {

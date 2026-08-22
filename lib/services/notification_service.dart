@@ -15,6 +15,7 @@ class NotificationService {
   static const int medicationId = 1001;
   static const int dailyLogId = 1002;
   static const int periodReminderId = 1003;
+  static const int waterReminderBaseId = 2000;
 
   Future<void> init() async {
     if (_initialized) return;
@@ -125,6 +126,28 @@ class NotificationService {
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
+  }
+
+  Future<void> scheduleWaterReminders() async {
+    await init();
+    // Schedule 4 times a day: 10 AM, 1 PM, 4 PM, 7 PM
+    final hours = [10, 13, 16, 19];
+    for (int i = 0; i < hours.length; i++) {
+      await scheduleDaily(
+        id: waterReminderBaseId + i,
+        title: 'Hydration time 💧',
+        body: 'Time to drink some water! Staying hydrated helps manage symptoms.',
+        hour: hours[i],
+        minute: 0,
+      );
+    }
+  }
+
+  Future<void> cancelWaterReminders() async {
+    await init();
+    for (int i = 0; i < 4; i++) {
+      await cancel(waterReminderBaseId + i);
+    }
   }
 
   Future<void> cancel(int id) async {

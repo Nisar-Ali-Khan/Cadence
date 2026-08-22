@@ -34,20 +34,35 @@ class CadenceApp extends StatefulWidget {
 
 class CadenceAppState extends State<CadenceApp> {
   ThemeMode _themeMode = ThemeMode.light;
+  Color? _accentColor;
+
   ThemeMode get themeMode => _themeMode;
+  Color? get accentColor => _accentColor;
 
   @override
   void initState() {
     super.initState();
-    _loadTheme();
+    _loadSettings();
   }
 
-  Future<void> _loadTheme() async {
+  Future<void> _loadSettings() async {
     final uid = AuthService().currentUser?.uid ?? 'guest';
-    final mode = await StorageService(uid).loadThemeMode();
+    final storage = StorageService(uid);
+    final mode = await storage.loadThemeMode();
+    final accentVal = await storage.loadAccentColor();
+    
     setState(() {
       _themeMode = mode == 'dark' ? ThemeMode.dark : ThemeMode.light;
+      if (accentVal != null) _accentColor = Color(accentVal);
     });
+  }
+
+  Future<void> setAccentColor(Color color) async {
+    setState(() {
+      _accentColor = color;
+    });
+    final uid = AuthService().currentUser?.uid ?? 'guest';
+    await StorageService(uid).saveAccentColor(color.value);
   }
 
   Future<void> toggleTheme() async {
@@ -64,8 +79,8 @@ class CadenceAppState extends State<CadenceApp> {
     return MaterialApp(
       title: 'Cadence',
       debugShowCheckedModeBanner: false,
-      theme: buildAppTheme(isDark: false),
-      darkTheme: buildAppTheme(isDark: true),
+      theme: buildAppTheme(isDark: false, accentColor: _accentColor),
+      darkTheme: buildAppTheme(isDark: true, accentColor: _accentColor),
       themeMode: _themeMode,
       home: const SplashScreen(),
     );

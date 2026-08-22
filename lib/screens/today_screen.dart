@@ -169,12 +169,69 @@ class TodayScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        _buildHeader(context, isDark),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(_greeting(), style: AppText.display(context: context, size: 24), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 2),
+                  Text(DateFormat('EEEE, MMMM d').format(DateTime.now()), style: AppText.body(context: context, size: 13, color: AppColors.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  if (streak >= 2) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: AppColors.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(99)),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('🔥', style: TextStyle(fontSize: 12)),
+                          const SizedBox(width: 4),
+                          Flexible(child: Text('$streak day streak', style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? Colors.white : AppColors.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  borderRadius: BorderRadius.circular(99),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CalendarScreen(
+                        cycleData: cycleData,
+                        dailyLogs: dailyLogs,
+                        cycleLength: cycleLength,
+                        currentDay: currentDay.clamp(1, cycleData.length),
+                        onSaveDay: onSaveDay,
+                      ),
+                    ),
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
+                    child: Icon(Icons.calendar_month_outlined, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
+                  child: Icon(Icons.notifications_none, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
+                ),
+              ],
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
-        _buildPhaseInsight(context, isDark),
-        const SizedBox(height: 16),
-        _buildQuickActions(context, isDark),
-        const SizedBox(height: 16),
+        
         SectionCard(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -185,495 +242,259 @@ class TodayScreen extends StatelessWidget {
             ],
           ),
         ),
-        _buildCycleRingSection(context, safeDay, flareLabel, flareRisk, flareColor, avgRecent, rescueTips, isDark),
-        _buildLoggingSection(context),
-        _buildWaterSection(context, isDark),
-        _buildMedicationSection(context),
-        _buildNoteSection(context),
-        if (trackingGoals.contains('Weight')) _buildWeightSection(context, isDark),
-        _buildWarningSection(context),
-        _buildPatternsSection(context, insights, isDark),
-      ],
-    );
-  }
 
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
+        SectionCard(
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_greeting(), style: AppText.display(context: context, size: 24), maxLines: 1, overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 2),
-              Text(DateFormat('EEEE, MMMM d').format(DateTime.now()), style: AppText.body(context: context, size: 13, color: AppColors.muted), maxLines: 1, overflow: TextOverflow.ellipsis),
-              if (streak >= 2) ...[
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.amber.withOpacity(0.15), borderRadius: BorderRadius.circular(99)),
+              CycleRing(cycleData: cycleData, currentDay: safeDay, cycleLength: cycleLength),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: avgRecent >= 3.5 ? () => _showRescueToolkit(context, flareLabel, rescueTips) : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(color: flareColor.withOpacity(0.13), borderRadius: BorderRadius.circular(99)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('🔥', style: TextStyle(fontSize: 12)),
-                      const SizedBox(width: 4),
-                      Flexible(child: Text('$streak day streak', style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? Colors.white : AppColors.ink), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Container(width: 8, height: 8, decoration: BoxDecoration(color: flareColor, shape: BoxShape.circle)),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text('$flareLabel: $flareRisk', style: AppText.body(context: context, size: 12, weight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      if (avgRecent >= 3.5) ...[
+                        const SizedBox(width: 6),
+                        Icon(Icons.info_outline, size: 12, color: isDark ? Colors.white70 : AppColors.ink),
+                      ],
                     ],
                   ),
                 ),
-              ],
+              ),
             ],
           ),
         ),
-        const SizedBox(width: 12),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(99),
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => CalendarScreen(
-                    cycleData: cycleData,
-                    dailyLogs: dailyLogs,
-                    cycleLength: cycleLength,
-                    currentDay: currentDay.clamp(1, cycleData.length),
-                    onSaveDay: onSaveDay,
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Log today', style: AppText.display(context: context, size: 17)),
+              const SizedBox(height: 10),
+              SymptomSlider(label: 'Pain', icon: Icons.bolt, accent: AppColors.rose, value: todayLog['pain']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('pain', v)),
+              SymptomSlider(label: 'Fatigue', icon: Icons.bedtime_outlined, accent: AppColors.amber, value: todayLog['fatigue']!, lowLabel: 'Rested', highLabel: 'Exhausted', onChanged: (v) => onChangeLog('fatigue', v)),
+              SymptomSlider(label: 'Mood', icon: Icons.sentiment_satisfied_alt, accent: AppColors.sage, value: todayLog['mood']!, lowLabel: 'Low', highLabel: 'Great', onChanged: (v) => onChangeLog('mood', v)),
+              SymptomSlider(label: 'Bloating', icon: Icons.water_drop_outlined, accent: AppColors.plum, value: todayLog['bloating']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('bloating', v)),
+              SymptomSlider(label: 'Acne', icon: Icons.face_retouching_natural, accent: AppColors.rose, value: todayLog['acne'] ?? 1, lowLabel: 'Clear', highLabel: 'Severe', onChanged: (v) => onChangeLog('acne', v)),
+              SymptomSlider(label: 'Sleep', icon: Icons.bedtime_outlined, accent: AppColors.sage, value: todayLog['sleep'] ?? 7, lowLabel: 'Poor', highLabel: 'Great', onChanged: (v) => onChangeLog('sleep', v)),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: logged ? AppColors.sage : (isDark ? AppColors.sageLight : AppColors.plum),
+                    foregroundColor: isDark ? Colors.black : AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
+                    elevation: 0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (logged) const Icon(Icons.check, size: 16),
+                      if (logged) const SizedBox(width: 6),
+                      Text(logged ? 'Saved for today' : "Save today's log", style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: isDark ? Colors.black : AppColors.white)),
+                    ],
                   ),
                 ),
               ),
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
-                child: Icon(Icons.calendar_month_outlined, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.white, borderRadius: BorderRadius.circular(99)),
-              child: Icon(Icons.notifications_none, size: 18, color: isDark ? AppColors.sageLight : AppColors.plum),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPhaseInsight(BuildContext context, bool isDark) {
-    String title = '';
-    String insight = '';
-    IconData icon = Icons.lightbulb_outline;
-    Color color = AppColors.sage;
-
-    if (currentDay <= 5) {
-      title = 'Menstrual Phase';
-      insight = 'Estrogen and progesterone are at their lowest. Prioritize rest and warming foods like soups.';
-      icon = Icons.water_drop_outlined;
-      color = AppColors.rose;
-    } else if (currentDay <= 13) {
-      title = 'Follicular Phase';
-      insight = 'Energy is rising as estrogen climbs. Great time for new projects and strength training.';
-      icon = Icons.wb_sunny_outlined;
-      color = AppColors.sage;
-    } else if (currentDay <= 16) {
-      title = 'Ovulation Window';
-      insight = 'You\'re at your most fertile. Mood and libido are usually high. Stay well hydrated!';
-      icon = Icons.favorite_outline;
-      color = AppColors.amber;
-    } else {
-      title = 'Luteal Phase';
-      insight = 'Progesterone is high. You may feel more introverted or experience bloating. Focus on gentle movement.';
-      icon = Icons.nightlight_outlined;
-      color = AppColors.plum;
-    }
-
-    return SectionCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 20),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
+        ),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Water tracker', style: AppText.display(context: context, size: 17)),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('$waterGlasses glasses today', style: AppText.body(context: context, size: 15, weight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text('Goal: 8 glasses (2L)', style: AppText.body(context: context, size: 12, color: AppColors.muted)),
+                      ],
+                    ),
+                  ),
+                  _stepButton(context, Icons.remove, () => onUpdateWater((waterGlasses - 1).clamp(0, 30))),
+                  const SizedBox(width: 12),
+                  _stepButton(context, Icons.add, () => onUpdateWater((waterGlasses + 1).clamp(0, 30)), color: isDark ? Colors.white10 : AppColors.plum.withOpacity(0.08)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: List.generate(
+                  8,
+                  (index) => Expanded(
+                    child: Container(
+                      height: 6,
+                      margin: EdgeInsets.only(right: index == 7 ? 0 : 4),
+                      decoration: BoxDecoration(
+                        color: index < waterGlasses ? (isDark ? AppColors.sage : AppColors.plum) : (isDark ? Colors.white10 : AppColors.sand),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Medication', style: AppText.display(context: context, size: 17)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (medicationNames.isEmpty)
+                Text('Add your medications in Profile to track them here.', style: AppText.body(context: context, size: 13, color: AppColors.muted))
+              else
+                ...medicationNames.map((name) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(child: Text(name, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
+                      Checkbox(
+                        value: medicationLog[name] ?? false,
+                        onChanged: (v) => onToggleMedication(name, v ?? false),
+                        activeColor: AppColors.sage,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ],
+                  ),
+                )),
+            ],
+          ),
+        ),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Daily note', style: AppText.display(context: context, size: 17)),
+              const SizedBox(height: 12),
+              _NoteField(initialValue: todayNote, onUpdate: onUpdateNote),
+            ],
+          ),
+        ),
+        if (trackingGoals.contains('Weight'))
+          SectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppText.body(context: context, size: 14, weight: FontWeight.w700, color: color)),
-                const SizedBox(height: 4),
-                Text(insight, style: AppText.body(context: context, size: 12.5, color: isDark ? Colors.white70 : AppColors.ink)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Weight', style: AppText.display(context: context, size: 17)),
+                    GestureDetector(
+                      onTap: () => onChangeWeightUnit(weightUnit == 'kg' ? 'lbs' : 'kg'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(99)),
+                        child: Text(weightUnit, style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _stepButton(context, Icons.remove, () => onChangeWeight(((todayWeightKg ?? 65.0) - _weightStepKg()).clamp(20, 300))),
+                    const SizedBox(width: 24),
+                    Column(
+                      children: [
+                        Text(todayWeightKg == null ? '—' : _displayWeight(todayWeightKg!), style: AppText.display(context: context, size: 32)),
+                        Text(weightUnit, style: AppText.body(context: context, size: 12, color: AppColors.muted)),
+                      ],
+                    ),
+                    const SizedBox(width: 24),
+                    _stepButton(context, Icons.add, () => onChangeWeight(((todayWeightKg ?? 65.0) + _weightStepKg()).clamp(20, 300))),
+                  ],
+                ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, bool isDark) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _quickActionItem(
-            context,
-            'I feel great',
-            '✨',
-            () {
-              onChangeLog('pain', 1);
-              onChangeLog('fatigue', 1);
-              onChangeLog('mood', 9);
-              onChangeLog('bloating', 1);
-              onChangeLog('acne', 1);
-              onSave();
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Logged: Feeling Great!')));
-            },
-          ),
-          const SizedBox(width: 10),
-          _quickActionItem(
-            context,
-            '+1L Water',
-            '💧',
-            () => onUpdateWater((waterGlasses + 4).clamp(0, 30)),
-          ),
-          const SizedBox(width: 10),
-          if (medicationNames.isNotEmpty)
-            _quickActionItem(
-              context,
-              'All Meds',
-              '💊',
-              () {
-                for (final name in medicationNames) {
-                  onToggleMedication(name, true);
-                }
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All medications marked as taken.')));
-              },
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _quickActionItem(BuildContext context, String label, String emoji, VoidCallback onTap) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white.withOpacity(0.05) : AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isDark ? Colors.white12 : AppColors.sandDeep),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 8),
-            Text(label, style: AppText.body(context: context, size: 12, weight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCycleRingSection(BuildContext context, int safeDay, String flareLabel, String flareRisk, Color flareColor, double avgRecent, List<String> rescueTips, bool isDark) {
-    return SectionCard(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Column(
-        children: [
-          CycleRing(cycleData: cycleData, currentDay: safeDay, cycleLength: cycleLength),
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: avgRecent >= 3.5 ? () => _showRescueToolkit(context, flareLabel, rescueTips) : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(color: flareColor.withOpacity(0.13), borderRadius: BorderRadius.circular(99)),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(width: 8, height: 8, decoration: BoxDecoration(color: flareColor, shape: BoxShape.circle)),
-                  const SizedBox(width: 8),
-                  Flexible(child: Text('$flareLabel: $flareRisk', style: AppText.body(context: context, size: 12, weight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  if (avgRecent >= 3.5) ...[
-                    const SizedBox(width: 6),
-                    Icon(Icons.info_outline, size: 12, color: isDark ? Colors.white70 : AppColors.ink),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoggingSection(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Log today', style: AppText.display(context: context, size: 17)),
-          const SizedBox(height: 10),
-          SymptomSlider(label: 'Pain', icon: Icons.bolt, accent: AppColors.rose, value: todayLog['pain']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('pain', v)),
-          SymptomSlider(label: 'Fatigue', icon: Icons.bedtime_outlined, accent: AppColors.amber, value: todayLog['fatigue']!, lowLabel: 'Rested', highLabel: 'Exhausted', onChanged: (v) => onChangeLog('fatigue', v)),
-          SymptomSlider(label: 'Mood', icon: Icons.sentiment_satisfied_alt, accent: AppColors.sage, value: todayLog['mood']!, lowLabel: 'Low', highLabel: 'Great', onChanged: (v) => onChangeLog('mood', v)),
-          SymptomSlider(label: 'Bloating', icon: Icons.water_drop_outlined, accent: AppColors.plum, value: todayLog['bloating']!, lowLabel: 'None', highLabel: 'Severe', onChanged: (v) => onChangeLog('bloating', v)),
-          SymptomSlider(label: 'Acne', icon: Icons.face_retouching_natural, accent: AppColors.rose, value: todayLog['acne'] ?? 1, lowLabel: 'Clear', highLabel: 'Severe', onChanged: (v) => onChangeLog('acne', v)),
-          SymptomSlider(label: 'Sleep', icon: Icons.bedtime_outlined, accent: AppColors.sage, value: todayLog['sleep'] ?? 7, lowLabel: 'Poor', highLabel: 'Great', onChanged: (v) => onChangeLog('sleep', v)),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: logged ? AppColors.sage : (isDark ? AppColors.sageLight : AppColors.plum),
-                foregroundColor: isDark ? Colors.black : AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(99)),
-                elevation: 0,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (logged) const Icon(Icons.check, size: 16),
-                  if (logged) const SizedBox(width: 6),
-                  Text(logged ? 'Saved for today' : "Save today's log", style: AppText.body(context: context, size: 14, weight: FontWeight.w600, color: isDark ? Colors.black : AppColors.white)),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWaterSection(BuildContext context, bool isDark) {
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Water tracker', style: AppText.display(context: context, size: 17)),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('$waterGlasses glasses today', style: AppText.body(context: context, size: 15, weight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text('Goal: 8 glasses (2L)', style: AppText.body(context: context, size: 12, color: AppColors.muted)),
-                  ],
-                ),
-              ),
-              _stepButton(context, Icons.remove, () => onUpdateWater((waterGlasses - 1).clamp(0, 30))),
-              const SizedBox(width: 12),
-              _stepButton(context, Icons.add, () => onUpdateWater((waterGlasses + 1).clamp(0, 30)), color: isDark ? Colors.white10 : AppColors.plum.withOpacity(0.08)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: List.generate(
-              8,
-              (index) => Expanded(
-                child: Container(
-                  height: 6,
-                  margin: EdgeInsets.only(right: index == 7 ? 0 : 4),
-                  decoration: BoxDecoration(
-                    color: index < waterGlasses ? (isDark ? AppColors.sage : AppColors.plum) : (isDark ? Colors.white10 : AppColors.sand),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMedicationSection(BuildContext context) {
-    final takenCount = medicationLog.values.where((v) => v).length;
-    final totalCount = medicationNames.length;
-    final progress = totalCount == 0 ? 0.0 : takenCount / totalCount;
-
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Medication', style: AppText.display(context: context, size: 17)),
-              if (totalCount > 0)
-                Text('$takenCount of $totalCount taken', style: AppText.body(context: context, size: 12, weight: FontWeight.w600, color: AppColors.sage)),
-            ],
-          ),
-          if (totalCount > 0) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(99),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: AppColors.sandDeep,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sage),
-              ),
-            ),
-          ],
-          const SizedBox(height: 16),
-          if (medicationNames.isEmpty)
-            Text('Add your medications in Profile to track them here.', style: AppText.body(context: context, size: 13, color: AppColors.muted))
-          else
-            ...medicationNames.map((name) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(child: Text(name, style: AppText.body(context: context, size: 14, weight: FontWeight.w600))),
-                  Checkbox(
-                    value: medicationLog[name] ?? false,
-                    onChanged: (v) => onToggleMedication(name, v ?? false),
-                    activeColor: AppColors.sage,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  ),
-                ],
-              ),
-            )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoteSection(BuildContext context) {
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Daily note', style: AppText.display(context: context, size: 17)),
-          const SizedBox(height: 12),
-          _NoteField(initialValue: todayNote, onUpdate: onUpdateNote),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWeightSection(BuildContext context, bool isDark) {
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Weight', style: AppText.display(context: context, size: 17)),
-              GestureDetector(
-                onTap: () => onChangeWeightUnit(weightUnit == 'kg' ? 'lbs' : 'kg'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: isDark ? Colors.white10 : AppColors.sand, borderRadius: BorderRadius.circular(99)),
-                  child: Text(weightUnit, style: AppText.body(context: context, size: 11, weight: FontWeight.w700, color: isDark ? AppColors.sageLight : AppColors.plum)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _stepButton(context, Icons.remove, () => onChangeWeight(((todayWeightKg ?? 65.0) - _weightStepKg()).clamp(20, 300))),
-              const SizedBox(width: 24),
-              Column(
-                children: [
-                  Text(todayWeightKg == null ? '—' : _displayWeight(todayWeightKg!), style: AppText.display(context: context, size: 32)),
-                  Text(weightUnit, style: AppText.body(context: context, size: 12, color: AppColors.muted)),
-                ],
-              ),
-              const SizedBox(width: 24),
-              _stepButton(context, Icons.add, () => onChangeWeight(((todayWeightKg ?? 65.0) + _weightStepKg()).clamp(20, 300))),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWarningSection(BuildContext context) {
-    if (todayLog['pain']! < 8) return const SizedBox.shrink();
-    return Container(
-      padding: const EdgeInsets.all(14),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(color: AppColors.rose.withOpacity(0.1), border: Border.all(color: AppColors.rose.withOpacity(0.3)), borderRadius: BorderRadius.circular(18)),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.rose),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'This pain level is higher than your recent average. It may be worth checking in with your doctor sooner rather than at your next scheduled visit.',
-              style: AppText.body(context: context, size: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPatternsSection(BuildContext context, List<String> insights, bool isDark) {
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.trending_up, size: 16, color: isDark ? AppColors.sageLight : AppColors.plum),
-              const SizedBox(width: 8),
-              Text('Patterns in your logs', style: AppText.display(context: context, size: 17)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (insights.isEmpty)
-            Text('Log at least 2 days from here and patterns will start showing up in this card.', style: AppText.body(context: context, size: 13.5, color: AppColors.muted))
-          else
-            ...List.generate(insights.length, (i) {
-              final isLast = i == insights.length - 1;
-              return Container(
-                padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
-                decoration: isLast ? null : BoxDecoration(border: Border(bottom: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
-                child: Text(insights[i], style: AppText.body(context: context, size: 13.5)),
-              );
-            }),
-          const SizedBox(height: 14),
+        if (todayLog['pain']! >= 8)
           Container(
-            padding: const EdgeInsets.only(top: 10),
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
+            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(color: AppColors.rose.withOpacity(0.1), border: Border.all(color: AppColors.rose.withOpacity(0.3)), borderRadius: BorderRadius.circular(18)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.shield_outlined, size: 13, color: AppColors.muted),
-                const SizedBox(width: 8),
+                const Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.rose),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'These are patterns from your own logs, not a diagnosis. Share them with your doctor for context.',
-                    style: AppText.body(context: context, size: 11.5, color: AppColors.muted),
+                    'This pain level is higher than your recent average. It may be worth checking in with your doctor sooner rather than at your next scheduled visit.',
+                    style: AppText.body(context: context, size: 13),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.trending_up, size: 16, color: isDark ? AppColors.sageLight : AppColors.plum),
+                  const SizedBox(width: 8),
+                  Text('Patterns in your logs', style: AppText.display(context: context, size: 17)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (insights.isEmpty)
+                Text('Log at least 2 days from here and patterns will start showing up in this card.', style: AppText.body(context: context, size: 13.5, color: AppColors.muted))
+              else
+                ...List.generate(insights.length, (i) {
+                  final isLast = i == insights.length - 1;
+                  return Container(
+                    padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                    margin: EdgeInsets.only(bottom: isLast ? 0 : 12),
+                    decoration: isLast ? null : BoxDecoration(border: Border(bottom: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
+                    child: Text(insights[i], style: AppText.body(context: context, size: 13.5)),
+                  );
+                }),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.only(top: 10),
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: isDark ? Colors.white12 : AppColors.sandDeep))),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.shield_outlined, size: 13, color: AppColors.muted),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'These are patterns from your own logs, not a diagnosis. Share them with your doctor for context.',
+                        style: AppText.body(context: context, size: 11.5, color: AppColors.muted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
-  }
   }
 
   Widget _predictionItem(BuildContext context, String label, String value, IconData icon, Color color) {

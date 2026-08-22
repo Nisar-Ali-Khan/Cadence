@@ -30,19 +30,24 @@ class AppText {
 
   static TextStyle mono({required BuildContext context, double size = 12, Color? color}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GoogleFonts.ibmPlexMono(fontSize: size, color: color ?? (isDark ? AppColors.sageLight : AppColors.plum));
+    final primary = Theme.of(context).primaryColor;
+    return GoogleFonts.ibmPlexMono(fontSize: size, color: color ?? (isDark ? AppColors.sageLight : primary));
   }
 }
 
-ThemeData buildAppTheme({bool isDark = false}) {
+ThemeData buildAppTheme({bool isDark = false, Color? accentColor}) {
   final textColor = isDark ? AppColors.white : AppColors.ink;
+  final primary = accentColor ?? AppColors.plum;
+  
   return ThemeData(
     brightness: isDark ? Brightness.dark : Brightness.light,
+    primaryColor: primary,
     scaffoldBackgroundColor: isDark ? const Color(0xFF121212) : AppColors.sand,
     cardColor: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
     fontFamily: GoogleFonts.publicSans().fontFamily,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.plum,
+      seedColor: primary,
+      primary: primary,
       brightness: isDark ? Brightness.dark : Brightness.light,
       surface: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
     ),

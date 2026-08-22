@@ -11,6 +11,7 @@ import '../services/storage_service.dart';
 import '../services/notification_service.dart';
 import '../services/cloud_sync_service.dart';
 import '../widgets/section_card.dart';
+import 'cycle_history_screen.dart';
 import 'edit_profile_screen.dart';
 import 'login_screen.dart';
 import 'privacy_policy_screen.dart';
@@ -23,9 +24,13 @@ class ProfileScreen extends StatefulWidget {
   final int cycleLength;
   final DateTime cycleStartDate;
   final List<String> medicationNames;
+  final List<DateTime> periodHistory;
   final void Function(String key) onToggle;
   final VoidCallback onToggleTheme;
+  final Function(Color) onUpdateAccent;
   final void Function(List<String> names) onUpdateMeds;
+  final Function(DateTime) onAddHistory;
+  final Function(DateTime) onDeleteHistory;
   final VoidCallback onDataChanged;
 
   const ProfileScreen({
@@ -34,9 +39,13 @@ class ProfileScreen extends StatefulWidget {
     required this.cycleLength,
     required this.cycleStartDate,
     required this.medicationNames,
+    required this.periodHistory,
     required this.onToggle,
     required this.onToggleTheme,
+    required this.onUpdateAccent,
     required this.onUpdateMeds,
+    required this.onAddHistory,
+    required this.onDeleteHistory,
     required this.onDataChanged,
   });
 
@@ -96,10 +105,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final willEnable = !(widget.reminders[key] ?? false);
     widget.onToggle(key);
     if (willEnable) {
-      await _scheduleReminder(key);
-      if (mounted) await _pickTime(key);
+      if (key == 'water') {
+        await NotificationService().scheduleWaterReminders();
+      } else {
+        await _scheduleReminder(key);
+        if (mounted) await _pickTime(key);
+      }
     } else {
-      await NotificationService().cancel(_idFor(key));
+      if (key == 'water') {
+        await NotificationService().cancelWaterReminders();
+      } else {
+        await NotificationService().cancel(_idFor(key));
+      }
     }
   }
 
@@ -392,13 +409,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
 
-        if (_trackingGoals.isNotEmpty)
-          SectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Tracking', style: AppText.display(context: context, size: 15)),
-                const SizedBox(height: 10),
+        SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tracking', style: AppText.display(context: context, size: 15)),
+              const SizedBox(height: 10),
+              _actionRow(context, 
+                icon: Icons.history_rounded, 
+                label: 'Cycle History', 
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => CycleHistoryScreen(
+                    history: widget.periodHistory,
+                    onAdd: widget.onAddHistory,
+                    onDelete: widget.onDeleteHistory,
+                  ))
+                ),
+              ),
+              if (_trackingGoals.isNotEmpty) ...[
+                const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -411,8 +440,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }).toList(),
                 ),
               ],
-            ),
+            ],
           ),
+        ),
 
         SectionCard(
           child: Column(
@@ -422,7 +452,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 4),
               _timesLoading
                   ? const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: LinearProgressIndicator(color: AppColors.plum))
-                  : Column(children: [_reminderRow(context, 'Medication reminder', 'medication'), const SizedBox(height: 6), _reminderRow(context, 'Daily log nudge', 'dailyLog')]),
+                  : Column(children: [
+                      _reminderRow(context, 'Medication reminder', 'medication'), 
+                      const SizedBox(height: 6), 
+                      _reminderRow(context, 'Daily log nudge', 'dailyLog'),
+                      const SizedBox(height: 6),
+                      _reminderRow(context, 'Smart water nudges', 'water'),
+                    ]),
             ],
           ),
         ),
@@ -467,6 +503,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
                   label: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
                   onTap: widget.onToggleTheme),
+              _divider(context),
+              _actionRow(context, icon: Icons.palette_outlined, label: 'App Theme Color', onTap: () => _showColorPicker(context)),
               _divider(context),
               _actionRow(context, icon: Icons.lock_reset, label: 'Change password', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ChangePasswordScreen()))),
               _divider(context),
@@ -594,6 +632,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ManageMedsSheet(initialMeds: widget.medicationNames, onSave: widget.onUpdateMeds),
+    );
+  }
+
+  void _showColorPicker(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E1E) : AppColors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Choose Accent Color', style: AppText.display(context: context, size: 20)),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _colorCircle(context, AppColors.plum, 'Classic'),
+                _colorCircle(context, AppColors.sage, 'Sage'),
+                _colorCircle(context, AppColors.rose, 'Rose'),
+                _colorCircle(context, AppColors.amber, 'Amber'),
+              ],
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _colorCircle(BuildContext context, Color color, String name) {
+    final isSelected = Theme.of(context).primaryColor == color;
+    return GestureDetector(
+      onTap: () {
+        widget.onUpdateAccent(color);
+        Navigator.pop(context);
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+              boxShadow: [if (isSelected) BoxShadow(color: color.withOpacity(0.4), blurRadius: 10)],
+            ),
+            child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
+          ),
+          const SizedBox(height: 8),
+          Text(name, style: AppText.body(context: context, size: 12, weight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 }

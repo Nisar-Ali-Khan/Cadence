@@ -25,6 +25,8 @@ class StorageService {
   String get _keyWaterLog => '${uid}_water_log';
   String get _keyMedicationNames => '${uid}_medication_names';
   String get _keyThemeMode => '${uid}_theme_mode';
+  String get _keyAccentColor => '${uid}_accent_color';
+  String get _keyPeriodHistory => '${uid}_period_history';
 
   Future<SharedPreferences> get _prefs async => SharedPreferences.getInstance();
 
@@ -276,6 +278,29 @@ class StorageService {
     await prefs.setString(_keyThemeMode, mode);
   }
 
+  Future<int?> loadAccentColor() async {
+    final prefs = await _prefs;
+    return prefs.getInt(_keyAccentColor);
+  }
+
+  Future<void> saveAccentColor(int colorValue) async {
+    final prefs = await _prefs;
+    await prefs.setInt(_keyAccentColor, colorValue);
+  }
+
+  Future<List<DateTime>> loadPeriodHistory() async {
+    final prefs = await _prefs;
+    final stored = prefs.getStringList(_keyPeriodHistory);
+    if (stored == null) return [];
+    return stored.map((s) => DateTime.parse(s)).toList();
+  }
+
+  Future<void> savePeriodHistory(List<DateTime> history) async {
+    final prefs = await _prefs;
+    final serializable = history.map((d) => d.toIso8601String()).toList();
+    await prefs.setStringList(_keyPeriodHistory, serializable);
+  }
+
   Future<void> clearAllUserData() async {
     final prefs = await _prefs;
     await prefs.remove(_keyCycleStart);
@@ -298,6 +323,8 @@ class StorageService {
     await prefs.remove(_keyWaterLog);
     await prefs.remove(_keyMedicationNames);
     await prefs.remove(_keyThemeMode);
+    await prefs.remove(_keyAccentColor);
+    await prefs.remove(_keyPeriodHistory);
   }
 
   Future<Map<String, dynamic>> exportAllData() async {
@@ -313,6 +340,8 @@ class StorageService {
     final waterLog = await loadWaterLog();
     final medNames = await loadMedicationNames();
     final theme = await loadThemeMode();
+    final accent = await loadAccentColor();
+    final history = await loadPeriodHistory();
 
     return {
       'condition': condition,
@@ -326,6 +355,8 @@ class StorageService {
       'waterLog': waterLog.map((k, v) => MapEntry(k.toString(), v)),
       'medicationNames': medNames,
       'themeMode': theme,
+      'accentColor': accent,
+      'periodHistory': history.map((d) => d.toIso8601String()).toList(),
       'reports': reports,
       'exportedAt': DateTime.now().toIso8601String(),
     };

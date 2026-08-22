@@ -66,6 +66,7 @@ class _HomeShellState extends State<HomeShell> {
   Map<int, Map<String, bool>> medicationLog = {};
   Map<int, int> waterLog = {};
   List<String> medicationNames = [];
+  List<DateTime> periodHistory = [];
 
   @override
   void initState() {
@@ -121,6 +122,7 @@ class _HomeShellState extends State<HomeShell> {
     final localMedicationLog = await _storage.loadMedicationLog();
     final localWaterLog = await _storage.loadWaterLog();
     final localMedNames = await _storage.loadMedicationNames();
+    final localHistory = await _storage.loadPeriodHistory();
 
     DateTime resolvedStart = localStart;
     int resolvedCycleLength = loadedCycleLength;
@@ -136,6 +138,7 @@ class _HomeShellState extends State<HomeShell> {
     Map<int, Map<String, bool>> resolvedMedicationLog = localMedicationLog;
     Map<int, int> resolvedWaterLog = localWaterLog;
     List<String> resolvedMedNames = localMedNames;
+    List<DateTime> resolvedHistory = localHistory;
 
     if (cloudData != null) {
       resolvedStart = DateTime.tryParse(cloudData['cycleStartDate'] ?? '') ?? localStart;
@@ -190,6 +193,8 @@ class _HomeShellState extends State<HomeShell> {
       resolvedWaterLog = cloudWater.map((k, v) => MapEntry(int.parse(k.toString()), (v as num).toInt()));
 
       resolvedMedNames = ((cloudData['medicationNames'] as List?) ?? localMedNames).map((e) => e.toString()).toList();
+      final cloudHistory = (cloudData['periodHistory'] as List?) ?? [];
+      resolvedHistory = cloudHistory.map((s) => DateTime.parse(s.toString())).toList();
 
       await _storage.saveCycleSetup(lastPeriodDate: resolvedStart, cycleLength: resolvedCycleLength);
       await _storage.saveCycleData(resolvedCycleData);
@@ -203,6 +208,7 @@ class _HomeShellState extends State<HomeShell> {
       await _storage.saveMedicationLog(resolvedMedicationLog);
       await _storage.saveWaterLog(resolvedWaterLog);
       await _storage.saveMedicationNames(resolvedMedNames);
+      await _storage.savePeriodHistory(resolvedHistory);
       for (final entry in resolvedReminderTimes.entries) {
         await _storage.saveReminderTime(entry.key, entry.value[0], entry.value[1]);
       }
@@ -230,6 +236,7 @@ class _HomeShellState extends State<HomeShell> {
       medicationLog = resolvedMedicationLog;
       waterLog = resolvedWaterLog;
       medicationNames = resolvedMedNames;
+      periodHistory = resolvedHistory;
       _loading = false;
     });
 
@@ -257,7 +264,10 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> _syncToCloud({Map<String, List<int>>? reminderTimes}) async {
     final times = reminderTimes ?? await _storage.loadReminderTimes();
-    final currentTheme = CadenceApp.of(context).themeMode == ThemeMode.dark ? 'dark' : 'light';
+    final appState = CadenceApp.of(context);
+    final currentTheme = appState.themeMode == ThemeMode.dark ? 'dark' : 'light';
+    final accentVal = appState.accentColor?.value;
+
     await _cloud.pushAll(
       cycleStartDate: cycleStartDate,
       cycleLength: cycleLength,
@@ -274,7 +284,21 @@ class _HomeShellState extends State<HomeShell> {
       waterLog: waterLog,
       medicationNames: medicationNames,
       themeMode: currentTheme,
+      accentColor: accentVal,
+      periodHistory: periodHistory,
     );
+  }
+
+  void addPeriodHistory(DateTime date) {
+    setState(() => periodHistory.add(date));
+    _storage.savePeriodHistory(periodHistory);
+    _syncToCloud();
+  }
+
+  void deletePeriodHistory(DateTime date) {
+    setState(() => periodHistory.remove(date));
+    _storage.savePeriodHistory(periodHistory);
+    _syncToCloud();
   }
 
   void updateNote(String note) {
@@ -299,6 +323,11 @@ class _HomeShellState extends State<HomeShell> {
 
   Future<void> toggleTheme() async {
     await CadenceApp.of(context).toggleTheme();
+    _syncToCloud();
+  }
+
+  void updateAccentColor(Color color) {
+    CadenceApp.of(context).setAccentColor(color);
     _syncToCloud();
   }
 
@@ -422,9 +451,13 @@ class _HomeShellState extends State<HomeShell> {
         cycleLength: cycleLength,
         cycleStartDate: cycleStartDate,
         medicationNames: medicationNames,
+        periodHistory: periodHistory,
         onToggle: toggleReminder,
         onToggleTheme: toggleTheme,
+        onUpdateAccent: updateAccentColor,
         onUpdateMeds: updateMedicationNames,
+        onAddHistory: addPeriodHistory,
+        onDeleteHistory: deletePeriodHistory,
         onDataChanged: () async {
           // 1. Refresh internal state variables from local storage first.
           // This ensures we have the latest selection (like condition) made in EditProfile.
