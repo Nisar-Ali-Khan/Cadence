@@ -50,6 +50,16 @@ class _SignupScreenState extends State<SignupScreen> {
     });
   }
 
+  String? _validatePassword(String? v) {
+    if (v == null || v.isEmpty) return 'Enter a password';
+    if (v.length < 8) return 'At least 8 characters';
+    if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Include an uppercase letter';
+    if (!RegExp(r'[a-z]').hasMatch(v)) return 'Include a lowercase letter';
+    if (!RegExp(r'[0-9]').hasMatch(v)) return 'Include a number';
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(v)) return 'Include a special character';
+    return null;
+  }
+
   @override
   void dispose() {
     _name.dispose();
@@ -142,7 +152,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             isPassword: true,
                             obscure: _obscure,
                             onToggleObscure: () => setState(() => _obscure = !_obscure),
-                            validator: (v) => (v == null || v.length < 6) ? 'At least 6 characters' : null,
+                            validator: _validatePassword,
                           ),
                           const SizedBox(height: 16),
 

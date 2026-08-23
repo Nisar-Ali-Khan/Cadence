@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Deletion - Cadence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --plum: #4A2E5C;
+            --sage: #7C9885;
+            --rose: #B5657A;
+            --sand: #F5EFE6;
+            --white: #FFFFFF;
+            --muted: #9C93A8;
+            --ink: #241C2E;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: var(--sand);
+            color: var(--ink);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-family: 'Fraunces', serif;
+            color: var(--plum);
+            font-size: 32px;
+            margin: 0;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 8px;
+            display: block;
+        }
+
+        .card {
+            background-color: var(--white);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(74, 46, 92, 0.05);
+        }
+
+        h2 {
+            font-family: 'Fraunces', serif;
+            color: var(--plum);
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .step-list {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .step-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .step-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--rose);
+            font-weight: bold;
+        }
+
+        .email-box {
+            background-color: var(--sand);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .email-box a {
+            color: var(--plum);
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 1px solid var(--plum);
+        }
+
+        .deleted-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .item {
+            background-color: rgba(124, 152, 133, 0.1);
+            color: var(--sage);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .warning {
+            color: var(--rose);
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 16px;
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cadence</h1>
+            <span class="subtitle">Account Deletion Instructions</span>
+        </div>
+
+        <div class="card">
+            <h2>Option 1: In-App Deletion</h2>
+            <p style="font-size: 15px;">The fastest way to delete your data is directly within the Cadence app:</p>
+            <ul class="step-list">
+                <li>Open the <strong>Cadence</strong> app on your device.</li>
+                <li>Ensure you are <strong>signed in</strong> to your account.</li>
+                <li>Go to the <strong>'You'</strong> (Profile) tab in the bottom navigation.</li>
+                <li>Scroll down to the bottom of the screen.</li>
+                <li>Tap on <span style="color: var(--rose); font-weight: 700;">'Delete my account'</span>.</li>
+                <li>Confirm your choice in the popup dialog.</li>
+            </ul>
+            <p style="font-size: 14px; color: var(--muted);">This process immediately removes all your data from our servers and your local device.</p>
+        </div>
+
+        <div class="card">
+            <h2>Option 2: Email Request</h2>
+            <p style="font-size: 15px;">If you cannot access the app, you can request account deletion via email:</p>
+            <div class="email-box">
+                Subject: <strong>Account Deletion Request</strong><br>
+                To: <a href="mailto:nisar.uetm@gmail.com">nisar.uetm@gmail.com</a>
+            </div>
+            <p style="font-size: 14px; margin-top: 16px;">Please send the request from the email address associated with your Cadence account. Requests are processed within <strong>30 days</strong>.</p>
+        </div>
+
+        <div class="card">
+            <h2>What gets deleted?</h2>
+            <p style="font-size: 14px;">Deleting your account is permanent. The following information will be erased:</p>
+            <div class="deleted-items">
+                <div class="item">Cycle & Symptom Logs</div>
+                <div class="item">Health Reports</div>
+                <div class="item">Medication Lists</div>
+                <div class="item">Personal Preferences</div>
+                <div class="item">Account Credentials</div>
+                <div class="item">Cloud Backups</div>
+            </div>
+            <span class="warning">⚠️ This action cannot be undone. Once deleted, your health history cannot be recovered.</span>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Cadence App · Built for PCOS Care
+        </div>
+    </div>
+</body>
+</html>
