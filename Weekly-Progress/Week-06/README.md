@@ -31,25 +31,25 @@ During the sixth week, I worked on the main dashboard and mood tracking features
 
 Created the main dashboard with a welcome message and daily self-care activities.
 
-![Home Dashboard](home-dashboard.png)
+![Home Dashboard](home-dashboard.jpeg)
 
 ### 2. Mood Check-in
 
 Created a mood check-in screen where users can select and record their current feelings.
 
-![Mood Check-in](mood-checkin.png)
+![Mood Check-in](mood-checking.jpeg)
 
 ### 3. Energy and Stress Levels
 
 Added options for users to record their energy and stress levels.
 
-![Energy and Stress](energy-stress.png)
+![Energy and Stress](energy-stress.jpeg)
 
 ### 4. Weekly Mood Chart
 
 Created a weekly chart to display mood information based on saved records.
 
-![Weekly Mood Chart](weekly-mood-chart.png)
+![Weekly Mood Chart](weekly-mood-chart.jpeg)
 
 ### 5. Firebase Mood Records
 
