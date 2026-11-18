@@ -52,13 +52,13 @@ Created a signup screen for new users to register in the application.
 
 Created two display themes for Mindly. The Light Theme uses soft colours, while the Dark Theme provides a darker interface. Both themes maintain the same layout and design to give users a consistent experience.
 
-![App Themes](app-themes.jpeg)
+![App Themes](app-themes.png)
 
 ### 5. Teen and Parent Options
 
 Added separate role options for Teen and Parent users. Also added guest access for users who want to use the application without creating an account.
 
-![User Roles](user-roles.png)
+![User Roles](user-roles.jpeg)
 
 ## Challenges Faced
 
